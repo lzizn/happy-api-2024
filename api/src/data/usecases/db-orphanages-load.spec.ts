@@ -1,7 +1,7 @@
 import { DbOrphanagesLoad } from "./db-orphanages-load";
 
+import { mockOrphanageModels } from "@/domain/mocks";
 import { OrphanagesLoadRepository } from "@/data/protocols";
-import { mockOrphanageModels } from "@/domain/mocks/mock-orphanages";
 
 const makeOrphanagesLoadRepository = () => {
   class OrphanagesLoadRepositoryStub implements OrphanagesLoadRepository {
