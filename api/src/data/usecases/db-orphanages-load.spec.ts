@@ -1,14 +1,14 @@
 import { DbOrphanagesLoad } from "./db-orphanages-load";
 
 import { OrphanagesLoadRepository } from "@/data/protocols";
-import { mockSurveyModels } from "@/domain/mocks/mock-orphanages";
+import { mockOrphanageModels } from "@/domain/mocks/mock-orphanages";
 
 const makeOrphanagesLoadRepository = () => {
   class OrphanagesLoadRepositoryStub implements OrphanagesLoadRepository {
     result: OrphanagesLoadRepository.Result = [];
 
     async loadAll(): Promise<OrphanagesLoadRepository.Result> {
-      const result = mockSurveyModels(1);
+      const result = mockOrphanageModels(1);
       this.result = result;
       return result;
     }

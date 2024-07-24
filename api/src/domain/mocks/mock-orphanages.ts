@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 
 import { OrphanageModel } from "@/domain/models";
 
-export const mockSurveyModel = (): OrphanageModel => {
+export const mockOrphanageModel = (): OrphanageModel => {
   return {
     id: faker.string.uuid(),
     description: faker.lorem.words(10),
@@ -15,5 +15,5 @@ export const mockSurveyModel = (): OrphanageModel => {
   };
 };
 
-export const mockSurveyModels = (amount: number = 2): OrphanageModel[] =>
-  new Array(amount).fill(null).map(mockSurveyModel);
+export const mockOrphanageModels = (amount: number = 2): OrphanageModel[] =>
+  new Array(amount).fill(null).map(mockOrphanageModel);
