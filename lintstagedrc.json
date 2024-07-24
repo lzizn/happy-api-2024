@@ -1,0 +1,9 @@
+{
+  "*.ts": [
+    "eslint 'api/src/**' --fix",
+    "cd ./api",
+    "npm run test:unit",
+    "cd ..",
+    "git add"
+  ]
+}
