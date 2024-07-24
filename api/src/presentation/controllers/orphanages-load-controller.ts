@@ -1,10 +1,11 @@
-import { Controller, HttpResponse } from "@/presentation/protocols";
+import { ok } from "@/presentation/helpers";
+import type { Controller, HttpResponse } from "@/presentation/protocols";
 
 export class OrphanagesLoadController implements Controller {
   async handle(
     request: OrphanagesLoadController.Request
   ): Promise<HttpResponse> {
-    return { statusCode: 200, body: {} };
+    return ok({});
   }
 }
 
