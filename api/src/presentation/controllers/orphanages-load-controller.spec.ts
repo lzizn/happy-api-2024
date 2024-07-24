@@ -1,4 +1,4 @@
-import { OrphanagesLoad } from "@/domain/usecases";
+import type { OrphanagesLoad } from "@/domain/usecases";
 import { ServerError } from "@/presentation/errors";
 import { OrphanagesLoadController } from "@/presentation/controllers";
 
@@ -28,7 +28,7 @@ describe("OrphanagesLoadController", () => {
 
     const orphanagesLoadSpy = jest.spyOn(orphanagesLoad, "load");
 
-    await sut.handle({});
+    await sut.handle();
     expect(orphanagesLoadSpy).toHaveBeenCalled();
   });
 
@@ -39,7 +39,7 @@ describe("OrphanagesLoadController", () => {
       throw new Error("Caused by test");
     });
 
-    const response = await sut.handle({});
+    const response = await sut.handle();
     expect(response.statusCode).toBe(500);
     expect(response.body).toEqual(new ServerError());
   });
@@ -63,7 +63,7 @@ describe("OrphanagesLoadController", () => {
     const orphanagesLoadSpy = jest.spyOn(orphanagesLoad, "load");
     orphanagesLoadSpy.mockImplementation(async () => mockedOrphanages);
 
-    const response = await sut.handle({});
+    const response = await sut.handle();
 
     expect(orphanagesLoadSpy).toHaveBeenCalled();
     expect(response.body).toStrictEqual({
@@ -91,7 +91,7 @@ describe("OrphanagesLoadController", () => {
       .spyOn(orphanagesLoad, "load")
       .mockImplementation(async () => mockedOrphanages);
 
-    const response = await sut.handle({});
+    const response = await sut.handle();
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toHaveProperty("orphanages");
@@ -104,7 +104,7 @@ describe("OrphanagesLoadController", () => {
 
     jest.spyOn(orphanagesLoad, "load").mockImplementation(async () => []);
 
-    const httpResponse = await sut.handle({});
+    const httpResponse = await sut.handle();
 
     expect(httpResponse.statusCode).toBe(204);
     expect(httpResponse.body).toBe(null);

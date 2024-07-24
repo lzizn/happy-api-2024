@@ -6,9 +6,7 @@ import type { Controller, HttpResponse } from "@/presentation/protocols";
 export class OrphanagesLoadController implements Controller {
   constructor(private readonly orphanagesLoad: OrphanagesLoad) {}
 
-  async handle(
-    request: OrphanagesLoadController.Request
-  ): Promise<HttpResponse> {
+  async handle(): Promise<HttpResponse> {
     try {
       const orphanages = await this.orphanagesLoad.load();
 
@@ -19,6 +17,4 @@ export class OrphanagesLoadController implements Controller {
   }
 }
 
-export namespace OrphanagesLoadController {
-  export type Request = {};
-}
+export namespace OrphanagesLoadController {}
