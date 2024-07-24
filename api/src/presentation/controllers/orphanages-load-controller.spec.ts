@@ -21,14 +21,42 @@ const makeSut = () => {
   } as const;
 };
 
-describe("Orphanages Load Controller", () => {
-  it("Should call orphanagesLoad", async () => {
+describe("OrphanagesLoadController", () => {
+  it("Should call OrphanagesLoad", async () => {
     const { sut, orphanagesLoad } = makeSut();
 
     const orphanagesLoadSpy = jest.spyOn(orphanagesLoad, "load");
 
     await sut.handle({});
     expect(orphanagesLoadSpy).toHaveBeenCalled();
+  });
+
+  it("Should return results from OrphanagesLoad", async () => {
+    const { sut, orphanagesLoad } = makeSut();
+
+    const mockedOrphanages = [
+      {
+        id: "1",
+        description: "aa",
+        name: "Maria's Heart",
+        open_on_weekends: true,
+        opening_hours: "Mon-Sun 7am-7pm",
+        latitude: -20,
+        longitude: -40,
+        instructions: "None",
+      },
+    ];
+
+    const orphanagesLoadSpy = jest.spyOn(orphanagesLoad, "load");
+    orphanagesLoadSpy.mockImplementation(async () => mockedOrphanages);
+
+    const response = await sut.handle({});
+
+    expect(response.statusCode).toBe(200);
+    expect(orphanagesLoadSpy).toHaveBeenCalled();
+    expect(response.body).toStrictEqual({
+      orphanages: mockedOrphanages,
+    });
   });
 
   it("Should return 200", async () => {
