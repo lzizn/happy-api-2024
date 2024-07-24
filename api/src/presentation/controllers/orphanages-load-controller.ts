@@ -9,9 +9,9 @@ export class OrphanagesLoadController implements Controller {
   async handle(
     request: OrphanagesLoadController.Request
   ): Promise<HttpResponse> {
-    await this.orphanagesLoad.load();
+    const orphanages = await this.orphanagesLoad.load();
 
-    return ok({});
+    return ok({ orphanages });
   }
 }
 
