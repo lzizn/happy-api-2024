@@ -8,10 +8,14 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "sourceMap": true,
+    "rootDirs": ["src", "tests"],
+    "baseUrl": "src",
     "paths": {
       "@/tests/*": ["../tests/*"],
-      "@/*": ["./src"]
+      "@/*": ["*"]
     }
   },
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "coverage"]
 }
