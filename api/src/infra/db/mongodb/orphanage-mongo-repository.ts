@@ -1,6 +1,6 @@
 import { MongoHelper } from "@/infra/db/mongodb";
-import { OrphanageModel } from "@/domain/models";
-import { OrphanagesLoadRepository } from "@/data/protocols/db";
+import type { OrphanageModel } from "@/domain/models";
+import type { OrphanagesLoadRepository } from "@/data/protocols/db";
 
 export class OrphanageMongoRepository implements OrphanagesLoadRepository {
   async loadAll(): Promise<OrphanagesLoadRepository.Result> {
