@@ -65,16 +65,48 @@ describe("OrphanagesLoadController", () => {
 
     const response = await sut.handle({});
 
-    expect(response.statusCode).toBe(200);
     expect(orphanagesLoadSpy).toHaveBeenCalled();
     expect(response.body).toStrictEqual({
       orphanages: mockedOrphanages,
     });
   });
 
-  it("Should return 200", async () => {
-    const { sut } = makeSut();
-    const result = await sut.handle({});
-    expect(result.statusCode).toBe(200);
+  it("Should return 200 when there is at least one orphanage", async () => {
+    const { sut, orphanagesLoad } = makeSut();
+
+    const mockedOrphanages = [
+      {
+        id: "1",
+        description: "aa",
+        name: "Maria's Heart",
+        open_on_weekends: true,
+        opening_hours: "Mon-Sun 7am-7pm",
+        latitude: -20,
+        longitude: -40,
+        instructions: "None",
+      },
+    ];
+
+    jest
+      .spyOn(orphanagesLoad, "load")
+      .mockImplementation(async () => mockedOrphanages);
+
+    const response = await sut.handle({});
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty("orphanages");
+    expect(Array.isArray(response.body.orphanages)).toBe(true);
+    expect(response.body.orphanages.length).toBe(1);
+  });
+
+  it("Should return 204 and null if response from OrphanagesLoad is empty", async () => {
+    const { sut, orphanagesLoad } = makeSut();
+
+    jest.spyOn(orphanagesLoad, "load").mockImplementation(async () => []);
+
+    const httpResponse = await sut.handle({});
+
+    expect(httpResponse.statusCode).toBe(204);
+    expect(httpResponse.body).toBe(null);
   });
 });
