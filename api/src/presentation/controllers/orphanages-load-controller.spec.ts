@@ -1,4 +1,5 @@
 import { OrphanagesLoad } from "@/domain/usecases";
+import { ServerError } from "@/presentation/errors";
 import { OrphanagesLoadController } from "@/presentation/controllers";
 
 const makeOrphanagesLoad = () => {
@@ -29,6 +30,18 @@ describe("OrphanagesLoadController", () => {
 
     await sut.handle({});
     expect(orphanagesLoadSpy).toHaveBeenCalled();
+  });
+
+  it("Should return 500 when OrphanagesLoad throws", async () => {
+    const { sut, orphanagesLoad } = makeSut();
+
+    jest.spyOn(orphanagesLoad, "load").mockImplementation(async () => {
+      throw new Error("Caused by test");
+    });
+
+    const response = await sut.handle({});
+    expect(response.statusCode).toBe(500);
+    expect(response.body).toEqual(new ServerError());
   });
 
   it("Should return results from OrphanagesLoad", async () => {
