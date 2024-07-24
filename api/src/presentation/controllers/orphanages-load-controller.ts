@@ -1,6 +1,6 @@
 import type { OrphanagesLoad } from "@/domain/usecases";
 
-import { ok, serverError } from "@/presentation/helpers";
+import { ok, noContent, serverError } from "@/presentation/helpers";
 import type { Controller, HttpResponse } from "@/presentation/protocols";
 
 export class OrphanagesLoadController implements Controller {
@@ -12,7 +12,7 @@ export class OrphanagesLoadController implements Controller {
     try {
       const orphanages = await this.orphanagesLoad.load();
 
-      return ok({ orphanages });
+      return orphanages.length ? ok({ orphanages }) : noContent();
     } catch (e) {
       return serverError();
     }
