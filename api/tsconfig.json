@@ -7,7 +7,11 @@
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@/tests/*": ["../tests/*"],
+      "@/*": ["./src"]
+    }
   },
   "exclude": ["node_modules", "dist", "coverage"]
 }
