@@ -1,20 +1,14 @@
-import { Collection, Document, MongoClient, ServerApiVersion } from "mongodb";
-
-const DEFAULT_URI = process.env.MONGO_URL;
+import { Collection, Document, MongoClient } from "mongodb";
 
 export const MongoHelper = {
-  client: null as null | MongoClient,
+  client: null as unknown as MongoClient,
+  uri: null as unknown as string,
 
   async connect(uri: string) {
+    this.uri = uri;
     if (this.client) return this.client;
 
-    this.client = await MongoClient.connect(uri, {
-      // serverApi: {
-      //   version: ServerApiVersion.v1,
-      //   strict: true,
-      //   deprecationErrors: true,
-      // },
-    });
+    this.client = await MongoClient.connect(uri);
 
     return this.client;
   },
@@ -22,17 +16,22 @@ export const MongoHelper = {
   async disconnect() {
     if (this.client) {
       await this.client.close();
+
+      // @ts-expect-error "I don't know how to overlap MongoClient and null"
       this.client = null;
     }
   },
 
-  async getCollection<T extends Document>(
-    name: string
-  ): Promise<Collection<T>> {
-    if (!this.client) {
-      this.client = await this.connect(DEFAULT_URI as string);
-    }
-
+  getCollection<T extends Document>(name: string): Collection<T> {
     return this.client.db().collection(name);
+  },
+
+  map: <T>(data: Document): T => {
+    const { _id, ...rest } = data;
+    return { ...rest, id: _id.toHexString() } as T;
+  },
+
+  mapCollection: <T>(collection: Document[]): T[] => {
+    return collection.map((c) => MongoHelper.map(c));
   },
 };

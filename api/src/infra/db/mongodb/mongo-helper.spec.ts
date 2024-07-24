@@ -45,20 +45,8 @@ describe("MongoHelper", () => {
   it("Should return collection if there is connection", async () => {
     await MongoHelper.connect(process.env.MONGO_URL as string);
 
-    const collection = await MongoHelper.getCollection("users");
+    const collection = MongoHelper.getCollection("users");
 
     expect(collection).toBeInstanceOf(Collection);
-  });
-
-  it("Should start connection before getting collection if no connection is active", async () => {
-    expect(MongoHelper.client).toBe(null);
-
-    const connectSpy = jest.spyOn(MongoClient, "connect");
-
-    const collection = await MongoHelper.getCollection("users");
-
-    expect(connectSpy).toHaveBeenCalled();
-    expect(collection).toBeInstanceOf(Collection);
-    expect(MongoHelper.client).toBeInstanceOf(MongoClient);
   });
 });
