@@ -1,4 +1,5 @@
 import {
+  WithId,
   Document,
   Collection,
   MongoClient,
@@ -44,12 +45,12 @@ export const MongoHelper = {
     return this.client.db().collection(name);
   },
 
-  map: <T>(data: Document): T => {
+  map: <T>(data: WithId<Document>): T => {
     const { _id, ...rest } = data;
-    return { ...rest, id: _id.toHexString() } as T;
+    return { ...rest, id: _id.toString() } as T;
   },
 
-  mapCollection: <T>(collection: Document[]): T[] => {
+  mapCollection: <T>(collection: WithId<Document>[]): T[] => {
     return collection.map((c) => MongoHelper.map(c));
   },
 };
