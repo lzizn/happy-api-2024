@@ -58,4 +58,30 @@ describe("OrphanageMongoRepository", () => {
       expect(orphanages2.name).toBe(orphanagesAddModels[1].name);
     });
   });
+
+  describe("loadResult()", () => {
+    it("Should return null since when there no matches", async () => {
+      const sut = makeSut();
+      const orphanage = await sut.loadResult("-1");
+
+      expect(orphanage).toBe(null);
+    });
+
+    it("Should return matching orphanage", async () => {
+      const orphanages = mockOrphanageModels(5);
+      const orphanagesWithId = orphanages.map((x) => ({
+        ...x,
+        _id: new ObjectId(),
+      }));
+
+      await orphanageCollection.insertMany(orphanagesWithId);
+
+      const sut = makeSut();
+      const orphanageId = orphanagesWithId[0]._id;
+
+      const orphanage = await sut.loadResult(orphanageId);
+
+      expect(orphanage!.id).toBe(orphanagesWithId[0]._id.toString());
+    });
+  });
 });
