@@ -7,8 +7,8 @@
   "scripts": {
     "prepare": "husky install"
   },
-  "dependencies": {},
   "devDependencies": {
+    "eslint": "^8.57.0",
     "git-commit-msg-linter": "^5.0.8",
     "husky": "^9.1.1"
   }
