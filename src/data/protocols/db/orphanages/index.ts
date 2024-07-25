@@ -1,1 +1,2 @@
 export * from "./orphanages-load-repository";
+export * from "./orphanage-load-result-repository";
