@@ -1,1 +1,1 @@
-cd api && npm run test:integration
+npm run test:integration
