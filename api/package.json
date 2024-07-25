@@ -5,6 +5,7 @@
   "author": "Laian Braum <braumlaian@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "dev": "nodemon src/main/server.ts",
     "test": "jest --passWithNoTests --silent --noStackTrace --runInBand",
     "test:verbose": "jest --passWithNoTests --runInBand",
     "test:unit": "npm test -- -c ./jest-unit-config.js",
