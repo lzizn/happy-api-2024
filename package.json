@@ -15,7 +15,7 @@
     "test:unit:watch": "npm test:unit -- --watch",
     "test:integration": "npm test -- -c ./jest-integration-config.js",
     "test:integration:watch": "npm test:integration -- --watch",
-    "test:ci": "npm test --coverage"
+    "test:ci": "jest --coverage --noStackTrace"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
