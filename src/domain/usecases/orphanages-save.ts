@@ -2,7 +2,7 @@ import { OrphanageModel } from "@/domain/models";
 
 export interface OrphanagesSave {
   save: (
-    orphanage: OrphanageModel | Partial<OrphanageModel>
+    orphanage: Exclude<OrphanageModel, "id" | "_id">
   ) => Promise<OrphanagesSave.Result>;
 }
 
