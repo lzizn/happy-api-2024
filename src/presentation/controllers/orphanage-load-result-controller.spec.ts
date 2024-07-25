@@ -3,7 +3,11 @@ import { faker } from "@faker-js/faker";
 import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadResult } from "@/domain/usecases";
 
-import { ServerError } from "@/presentation/errors";
+import {
+  ServerError,
+  InvalidParamError,
+  MissingParamError,
+} from "@/presentation/errors";
 import { OrphanageLoadResultController } from "@/presentation/controllers";
 
 const makeOrphanageLoadResult = () => {
@@ -39,6 +43,28 @@ describe("OrphanageLoadResultController", () => {
 
     await sut.handle({ orphanageId: id });
     expect(orphanageLoadResultSpy).toHaveBeenCalled();
+  });
+
+  it("Should return 400 with InvalidParamError when orphanageId is null", async () => {
+    const { sut } = makeSut();
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const response = await sut.handle({ orphanageId: null });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual(new InvalidParamError("orphanageId"));
+  });
+
+  it("Should return 400 with MissingParamError when orphanageId is undefined", async () => {
+    const { sut } = makeSut();
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const response = await sut.handle({ orphanageId: undefined });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual(new MissingParamError("orphanageId"));
   });
 
   it("Should return 500 when OrphanageLoadResult throws", async () => {
