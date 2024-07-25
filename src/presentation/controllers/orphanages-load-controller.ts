@@ -12,7 +12,7 @@ export class OrphanagesLoadController implements Controller {
 
       return orphanages.length ? ok({ orphanages }) : noContent();
     } catch (e) {
-      return serverError();
+      return serverError(e as Error);
     }
   }
 }
