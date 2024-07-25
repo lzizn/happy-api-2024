@@ -1,4 +1,22 @@
-import { Collection, Document, MongoClient } from "mongodb";
+import {
+  Document,
+  Collection,
+  MongoClient,
+  ServerApiVersion,
+  MongoClientOptions,
+} from "mongodb";
+
+const getOptions = (): MongoClientOptions => {
+  if (process.env.NODE_ENV === "test") return {};
+
+  return {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    },
+  };
+};
 
 export const MongoHelper = {
   client: null as unknown as MongoClient,
@@ -8,7 +26,7 @@ export const MongoHelper = {
     this.uri = uri;
     if (this.client) return this.client;
 
-    this.client = await MongoClient.connect(uri);
+    this.client = await MongoClient.connect(uri, getOptions());
 
     return this.client;
   },
