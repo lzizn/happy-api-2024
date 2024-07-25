@@ -1,6 +1,6 @@
 {
   "*.ts": [
-    "eslint 'api/src/**' --fix",
+    "npx eslint --fix",
     "cd ./api",
     "npm run test:unit",
     "cd ..",
