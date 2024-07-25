@@ -1,6 +1,6 @@
 import request from "supertest";
 
-import app from "@/main/config/app";
+import { app } from "@/main/config/app";
 
 describe("Orphanages Routes", () => {
   it("Should return status 200 and list all orphanages", async () => {
