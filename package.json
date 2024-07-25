@@ -6,7 +6,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "nodemon src/main/server.ts",
-    "build": "rimraf dist && tsc -p tsconfig-build.json",
+    "predev": "npm run build",
+    "build": "tsc -p tsconfig-build.json",
+    "prebuild": "rimraf dist",
     "test": "jest --passWithNoTests --silent --noStackTrace --runInBand",
     "test:verbose": "jest --passWithNoTests --runInBand",
     "test:unit": "npm test -- -c ./jest-unit-config.js",
