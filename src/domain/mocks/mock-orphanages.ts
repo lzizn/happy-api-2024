@@ -4,7 +4,7 @@ import { OrphanageModel } from "@/domain/models";
 
 export const mockOrphanageModel = (): OrphanageModel => {
   return {
-    id: faker.string.uuid(),
+    _id: faker.string.uuid(),
     description: faker.lorem.words(10),
     instructions: faker.lorem.words(2),
     open_on_weekends: faker.datatype.boolean(),
