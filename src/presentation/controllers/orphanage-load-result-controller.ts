@@ -1,8 +1,8 @@
 import type { OrphanageLoadResult } from "@/domain/usecases";
 
-import { MissingParamError } from "@/presentation/errors";
-import { ok, serverError, badRequest, noContent } from "@/presentation/helpers";
 import type { Controller, HttpResponse } from "@/presentation/protocols";
+import { InvalidParamError, MissingParamError } from "@/presentation/errors";
+import { ok, serverError, badRequest, noContent } from "@/presentation/helpers";
 
 export class OrphanageLoadResultController implements Controller {
   constructor(private readonly orphanagesLoad: OrphanageLoadResult) {}
@@ -13,15 +13,18 @@ export class OrphanageLoadResultController implements Controller {
     try {
       const { orphanageId } = request;
 
-      if (!orphanageId) {
+      if ("undefined" === orphanageId + "") {
         return badRequest(new MissingParamError("orphanageId"));
+      }
+
+      if (typeof orphanageId !== "string") {
+        return badRequest(new InvalidParamError("orphanageId"));
       }
 
       const orphanage = await this.orphanagesLoad.loadResult(orphanageId);
 
       return orphanage ? ok({ orphanage }) : noContent();
     } catch (e) {
-      console.log(e);
       return serverError(e as Error);
     }
   }
