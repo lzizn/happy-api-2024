@@ -3,7 +3,7 @@
 module.exports = {
   mongodbMemoryServerOptions: {
     instance: {
-      dbName: "jest",
+      dbName: "happy-api",
     },
     binary: {
       version: "4.0.3",
