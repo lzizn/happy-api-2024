@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { adaptRoute } from "@/main/adapters";
 import { makeOrphanagesLoadController } from "@/main/factories";
+import { adaptRoute } from "@/main/adapters";
 
-export const OrphanagesRoutes = (router: Router) => {
+export default (router: Router) => {
   router.get("/orphanages", adaptRoute(makeOrphanagesLoadController()));
 };
