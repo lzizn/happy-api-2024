@@ -1,4 +1,4 @@
-import { DbOrphanagesLoad } from "./db-orphanages-load";
+import { DbOrphanagesLoad } from "@/data/usecases";
 
 import { mockOrphanageModels } from "@/domain/mocks";
 import { OrphanagesLoadRepository } from "@/data/protocols";
