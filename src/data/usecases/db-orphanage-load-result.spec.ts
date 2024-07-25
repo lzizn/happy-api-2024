@@ -1,8 +1,10 @@
-import { DbOrphanageLoadResult } from "@/data/usecases";
+import { ObjectId } from "mongodb";
 
-import { mockOrphanageModels } from "@/domain/mocks";
-import { OrphanageLoadResultRepository } from "@/data/protocols";
 import { OrphanageModel } from "@/domain/models";
+import { mockOrphanageModels } from "@/domain/mocks";
+
+import { DbOrphanageLoadResult } from "@/data/usecases";
+import { OrphanageLoadResultRepository } from "@/data/protocols";
 
 const makeOrphanagesLoadResultRepository = () => {
   class OrphanageLoadResultRepositoryStub
@@ -12,7 +14,7 @@ const makeOrphanagesLoadResultRepository = () => {
     result: OrphanageLoadResultRepository.Result = null;
 
     async loadResult(
-      orphanageId: string
+      orphanageId: string | ObjectId
     ): Promise<OrphanageLoadResultRepository.Result> {
       const orphanage =
         this.orphanages.find((x) => x._id === orphanageId) ?? null;
