@@ -1,38 +1,28 @@
 import request from "supertest";
-import { Collection } from "mongodb";
 
 import { app } from "@/main/config/app";
-import { MongoHelper } from "@/infra/db";
-import { mockOrphanageModels } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
+import { cleanOrphanagesSeed, seedOrphanages } from "@/infra/db";
 
 describe("OrphanageResult Routes", () => {
-  let orphanageCollection: Collection<OrphanageModel>;
-  const amount_of_seeds = 2;
-  const orphanagesAddModels = mockOrphanageModels(amount_of_seeds);
+  describe("Assuming orphanages in DB", () => {
+    const amount_of_seeds = 2;
 
-  beforeAll(async () => {
-    await MongoHelper.connect(process.env.MONGO_URL as string);
-    orphanageCollection =
-      MongoHelper.getCollection<OrphanageModel>("orphanage");
-  });
+    let orphanagesSeed: OrphanageModel[] = [];
 
-  afterAll(async () => {
-    await MongoHelper.disconnect();
-  });
-
-  describe("Seeded Orphanages", () => {
+    // * Seed DB
     beforeAll(async () => {
-      // * Seed DB
-      await orphanageCollection.insertMany(orphanagesAddModels);
+      const seedResult = await seedOrphanages(amount_of_seeds);
+      orphanagesSeed = seedResult.orphanagesSeed;
     });
 
+    // * Clean DB
     afterAll(async () => {
-      await orphanageCollection.deleteMany({});
+      await cleanOrphanagesSeed(orphanagesSeed);
     });
 
-    it("Should return 200 and orphanage", async () => {
-      const orphanage = orphanagesAddModels[0];
+    it("Should return 200 and matching orphanage", async () => {
+      const orphanage = orphanagesSeed[0];
       const orphanageId = orphanage._id as string;
 
       const response = await request(app).get(`/api/orphanages/${orphanageId}`);

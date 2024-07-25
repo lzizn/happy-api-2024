@@ -1,61 +1,48 @@
-import { Collection, ObjectId } from "mongodb";
-
-import { mockOrphanageModels } from "@/domain/mocks";
-import { MongoHelper, OrphanageMongoRepository } from "@/infra/db";
-
-let orphanageCollection: Collection;
+import {
+  seedOrphanages,
+  cleanOrphanagesSeed,
+  OrphanageMongoRepository,
+} from "@/infra/db";
+import type { OrphanageModel } from "@/domain/models";
 
 const makeSut = () => {
   return new OrphanageMongoRepository();
 };
 
 describe("OrphanageMongoRepository", () => {
-  beforeAll(async () => {
-    await MongoHelper.connect(process.env.MONGO_URL as string);
-  });
-
-  beforeEach(async () => {
-    orphanageCollection = MongoHelper.getCollection("orphanage");
-    await orphanageCollection.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await MongoHelper.disconnect();
-  });
-
   describe("loadAll()", () => {
-    it("Should load empty list", async () => {
+    it("Should return empty list if there are no documents", async () => {
       const sut = makeSut();
       const orphanages = await sut.loadAll();
       expect(orphanages.length).toBe(0);
     });
 
-    it("Should load all orphanages on success", async () => {
-      const orphanages_amount = 2;
+    describe("Assuming orphanages in DB", () => {
+      const amount_of_seeds = 2;
+      let orphanagesSeed: OrphanageModel[] = [];
 
       // * Seed DB
-      const orphanagesAddModels = mockOrphanageModels(orphanages_amount).map(
-        (x) => ({
-          ...x,
-          _id: new ObjectId(),
-        })
-      );
-      const result = await orphanageCollection.insertMany(orphanagesAddModels);
+      beforeAll(async () => {
+        const seedResult = await seedOrphanages(amount_of_seeds);
+        orphanagesSeed = seedResult.orphanagesSeed;
+      });
 
-      expect(result.insertedCount).toBe(orphanages_amount);
+      // * Clean DB
+      afterAll(async () => {
+        cleanOrphanagesSeed(orphanagesSeed);
+      });
 
-      const sut = makeSut();
-      const orphanages = await sut.loadAll();
+      it("Should load all orphanages on success", async () => {
+        const sut = makeSut();
+        const orphanages = await sut.loadAll();
 
-      const [orphanages1, orphanages2] = orphanages;
+        const [orphanages1, orphanages2] = orphanages;
 
-      expect(orphanages.length).toBe(orphanages_amount);
+        expect(orphanages.length).toBe(amount_of_seeds);
 
-      expect(orphanages1.id).toBe(orphanagesAddModels[0]._id.toString());
-      expect(orphanages1.name).toBe(orphanagesAddModels[0].name);
-
-      expect(orphanages2.id).toBe(orphanagesAddModels[1]._id.toString());
-      expect(orphanages2.name).toBe(orphanagesAddModels[1].name);
+        expect(orphanages1.name).toBe(orphanagesSeed[0].name);
+        expect(orphanages2.name).toBe(orphanagesSeed[1].name);
+      });
     });
   });
 
@@ -68,20 +55,16 @@ describe("OrphanageMongoRepository", () => {
     });
 
     it("Should return matching orphanage", async () => {
-      const orphanages = mockOrphanageModels(5);
-      const orphanagesWithId = orphanages.map((x) => ({
-        ...x,
-        _id: new ObjectId(),
-      }));
-
-      await orphanageCollection.insertMany(orphanagesWithId);
+      const { orphanagesSeed } = await seedOrphanages();
 
       const sut = makeSut();
-      const orphanageId = orphanagesWithId[0]._id;
+      const orphanageId = orphanagesSeed[0]._id as string;
 
       const orphanage = await sut.loadResult(orphanageId);
 
-      expect(orphanage!.id).toBe(orphanagesWithId[0]._id.toString());
+      expect(orphanage!.id).toBe(orphanagesSeed[0]._id);
+
+      await cleanOrphanagesSeed(orphanagesSeed);
     });
   });
 });

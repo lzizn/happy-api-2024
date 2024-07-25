@@ -10,14 +10,6 @@ const makeSut = () => {
 let errorCollection: Collection;
 
 describe("LogMongoRepository", () => {
-  beforeAll(async () => {
-    await MongoHelper.connect(process.env.MONGO_URL as string);
-  });
-
-  afterAll(async () => {
-    await MongoHelper.disconnect();
-  });
-
   beforeEach(async () => {
     errorCollection = MongoHelper.getCollection("errors");
     await errorCollection.deleteMany({});
