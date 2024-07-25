@@ -1,3 +1,3 @@
-export default {
-  mongoUrl: process.env.MONGO_URL || "mongodb://127.0.0.1:50399/happy-api",
-};
+export const getEnv = () => ({
+  database_url: process.env.DATABASE_URL as string,
+});
