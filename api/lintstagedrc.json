@@ -1,9 +1,7 @@
 {
   "*.ts": [
     "npx eslint --fix",
-    "cd ./api",
     "npm run test:unit",
-    "cd ..",
     "git add"
   ]
 }
