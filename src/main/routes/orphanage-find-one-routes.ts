@@ -5,7 +5,7 @@ import { adaptRoute } from "@/main/adapters";
 
 export default (router: Router) => {
   router.get(
-    "/orphanages/:orphanageId/results",
+    "/orphanages/:orphanageId",
     adaptRoute(makeOrphanageLoadResultController())
   );
 };

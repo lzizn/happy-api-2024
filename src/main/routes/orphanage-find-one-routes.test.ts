@@ -35,9 +35,7 @@ describe("OrphanageResult Routes", () => {
       const orphanage = orphanagesAddModels[0];
       const orphanageId = orphanage._id as string;
 
-      const response = await request(app).get(
-        `/api/orphanages/${orphanageId}/results`
-      );
+      const response = await request(app).get(`/api/orphanages/${orphanageId}`);
 
       orphanage.id = orphanage._id;
       delete orphanage._id;
@@ -49,9 +47,7 @@ describe("OrphanageResult Routes", () => {
 
   it("Should return 204 and empty object for body when there are no matches", async () => {
     const orphanageId = -1;
-    const response = await request(app).get(
-      `/api/orphanages/${orphanageId}/results`
-    );
+    const response = await request(app).get(`/api/orphanages/${orphanageId}`);
 
     expect(response.body).toEqual({});
     expect(response.statusCode).toBe(204);
