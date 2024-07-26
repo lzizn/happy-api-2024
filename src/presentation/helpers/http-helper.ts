@@ -1,5 +1,5 @@
-import { ServerError } from "@/presentation/errors";
 import type { HttpResponse } from "@/presentation/protocols";
+import { NotFoundError, ServerError } from "@/presentation/errors";
 
 export const ok = (data: any): HttpResponse => ({
   statusCode: 200,
@@ -17,6 +17,11 @@ export const noContent = (): HttpResponse => ({
 });
 
 export const badRequest = (error: Error): HttpResponse => ({
+  statusCode: 400,
+  body: error,
+});
+
+export const notFound = (error: NotFoundError): HttpResponse => ({
   statusCode: 400,
   body: error,
 });
