@@ -10,7 +10,7 @@ import { badRequest, created, serverError } from "@/presentation/helpers";
 
 export class OrphanageCreateController implements Controller {
   constructor(
-    private readonly orphanagesSave: OrphanageCreate,
+    private readonly orphanagesCreate: OrphanageCreate,
     private readonly validation: Validation
   ) {}
 
@@ -26,7 +26,7 @@ export class OrphanageCreateController implements Controller {
       if ("_id" in orphanage) delete orphanage._id;
       if ("id" in orphanage) delete orphanage.id;
 
-      const orphanageUpdated = await this.orphanagesSave.create(
+      const orphanageUpdated = await this.orphanagesCreate.create(
         orphanage as OrphanageModel
       );
 
