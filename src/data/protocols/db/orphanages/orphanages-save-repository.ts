@@ -2,10 +2,10 @@ import type { OrphanageModel } from "@/domain/models";
 
 export interface OrphanagesSaveRepository {
   save: (
-    orphanage: Exclude<OrphanageModel, "id" | "_id">
+    orphanage: Partial<OrphanageModel>
   ) => Promise<OrphanagesSaveRepository.Result>;
 }
 
 export namespace OrphanagesSaveRepository {
-  export type Result = OrphanageModel;
+  export type Result = OrphanageModel | null;
 }

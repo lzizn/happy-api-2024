@@ -7,9 +7,7 @@ export class DbOrphanagesSave implements OrphanagesSave {
     private readonly orphanagesSaveRepository: OrphanagesSaveRepository
   ) {}
 
-  save(
-    orphanage: Exclude<OrphanageModel, "id" | "_id">
-  ): Promise<OrphanagesSave.Result> {
+  save(orphanage: Partial<OrphanageModel>): Promise<OrphanagesSave.Result> {
     return this.orphanagesSaveRepository.save(orphanage);
   }
 }
