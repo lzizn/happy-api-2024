@@ -2,6 +2,12 @@ import request from "supertest";
 import { ObjectId } from "mongodb";
 
 import { app } from "@/main/config/app";
+
+import { mockOrphanageModel } from "@/domain/mocks";
+import type { OrphanageModel } from "@/domain/models";
+
+import { MissingParamError } from "@/presentation/errors";
+
 import { cleanOrphanagesSeed, seedOrphanages } from "@/infra/db";
 
 describe("Orphanages Routes", () => {
@@ -30,6 +36,43 @@ describe("Orphanages Routes", () => {
 
       expect(response.body).toEqual({});
       expect(response.statusCode).toBe(204);
+    });
+  });
+
+  describe("POST /orphanages", () => {
+    it("Should return 400 when creating orphanage without any required param", async () => {
+      const missing_param = "name";
+
+      const orphanageMock: Partial<OrphanageModel> = mockOrphanageModel();
+
+      delete orphanageMock[missing_param];
+
+      const response = await request(app).post("/api/orphanages").send({
+        orphanage: orphanageMock,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: new MissingParamError(missing_param).message,
+      });
+    });
+
+    it("Should return 201 and created orphanage when request is valid", async () => {
+      const orphanageMock: Partial<OrphanageModel> = mockOrphanageModel();
+
+      delete orphanageMock.id;
+
+      const response = await request(app).post("/api/orphanages").send({
+        orphanage: orphanageMock,
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toEqual({
+        orphanage: {
+          id: response.body.orphanage.id,
+          ...orphanageMock,
+        },
+      });
     });
   });
 
