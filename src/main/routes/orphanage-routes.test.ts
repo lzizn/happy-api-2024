@@ -13,7 +13,7 @@ describe("Orphanages Routes", () => {
     await cleanOrphanagesSeed();
   });
 
-  describe("/orphanages", () => {
+  describe("GET /orphanages", () => {
     it("Should return 200 and list all orphanages", async () => {
       await cleanOrphanagesSeed();
 
@@ -33,7 +33,7 @@ describe("Orphanages Routes", () => {
     });
   });
 
-  describe("/orphanages/:orphanageId", () => {
+  describe("GET /orphanages/:orphanageId", () => {
     describe("Assuming orphanages in DB", () => {
       it("Should return 200 and matching orphanage", async () => {
         const { orphanagesDb } = await seedOrphanages(2);
