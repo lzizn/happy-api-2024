@@ -1,11 +1,17 @@
 import { faker } from "@faker-js/faker";
 import { ObjectId } from "mongodb";
 
-import type { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
+import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadById, OrphanageUpdate } from "@/domain/usecases";
 
-import { NotFoundError, ServerError } from "@/presentation/errors";
+import {
+  MissingParamError,
+  NotFoundError,
+  ServerError,
+} from "@/presentation/errors";
+import { badRequest } from "@/presentation/helpers";
+import type { Validation } from "@/presentation/protocols";
 import { OrphanageUpdateController } from "@/presentation/controllers";
 
 const makeOrphanageUpdate = () => {
@@ -34,16 +40,35 @@ const makeOrphanageLoadById = (orphanagesMocks: OrphanageModel[]) => {
   return new OrphanageLoadByIdStub();
 };
 
+const makeValidationSpy = () => {
+  class ValidationSpy implements Validation {
+    error: Error | undefined;
+    input: any;
+
+    validate(input: any): Error | undefined {
+      this.input = input;
+      return this.error;
+    }
+  }
+
+  return new ValidationSpy();
+};
+
 const makeSut = () => {
   const orphanagesMocked = mockOrphanageModels();
 
   const orphanageUpdate = makeOrphanageUpdate();
   const orphanageLoadById = makeOrphanageLoadById(orphanagesMocked);
-
-  const sut = new OrphanageUpdateController(orphanageLoadById, orphanageUpdate);
+  const validationSpy = makeValidationSpy();
+  const sut = new OrphanageUpdateController(
+    orphanageLoadById,
+    orphanageUpdate,
+    validationSpy
+  );
 
   return {
     sut,
+    validationSpy,
     orphanageUpdate,
     orphanagesMocked,
     orphanageLoadById,
@@ -117,6 +142,33 @@ describe("OrphanageUpdateController", () => {
 
     expect(response.body).toEqual(new ServerError());
     expect(response.statusCode).toBe(500);
+  });
+
+  it("Should call Validation with correct value", async () => {
+    const { sut, validationSpy } = makeSut();
+
+    const request = {
+      orphanageId: "123",
+      orphanage: { name: faker.lorem.word() },
+    };
+    await sut.handle(request);
+
+    expect(validationSpy.input).toEqual(request);
+  });
+
+  it("Should return 400 if Validation returns an error", async () => {
+    const { sut, validationSpy } = makeSut();
+
+    validationSpy.error = new MissingParamError("orphanageId");
+
+    const httpResponse = await sut.handle({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      orphanageId: undefined,
+      orphanage: { name: faker.lorem.word({ length: 5 }) },
+    });
+
+    expect(httpResponse).toEqual(badRequest(validationSpy.error));
   });
 
   it("Should return 200 and updated orphanage when valid data is provided", async () => {
