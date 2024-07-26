@@ -16,5 +16,8 @@ export const mockOrphanageModel = (): OrphanageModel => {
   };
 };
 
-export const mockOrphanageModels = (amount: number = 2): OrphanageModel[] =>
-  new Array(amount).fill(null).map(mockOrphanageModel);
+const default_amount_of_seeds = 2;
+
+export const mockOrphanageModels = (
+  amount: number = default_amount_of_seeds
+): OrphanageModel[] => new Array(amount).fill(null).map(mockOrphanageModel);
