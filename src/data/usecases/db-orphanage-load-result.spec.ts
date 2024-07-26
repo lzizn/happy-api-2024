@@ -6,7 +6,7 @@ import { mockOrphanageModels } from "@/domain/mocks";
 import { DbOrphanageLoadResult } from "@/data/usecases";
 import { OrphanageLoadResultRepository } from "@/data/protocols";
 
-const makeOrphanagesLoadResultRepository = () => {
+const makeOrphanageLoadResultRepository = () => {
   class OrphanageLoadResultRepositoryStub
     implements OrphanageLoadResultRepository
   {
@@ -28,44 +28,44 @@ const makeOrphanagesLoadResultRepository = () => {
 };
 
 const makeSut = () => {
-  const orphanagesLoadResultRepository = makeOrphanagesLoadResultRepository();
-  const sut = new DbOrphanageLoadResult(orphanagesLoadResultRepository);
+  const orphanageLoadResultRepository = makeOrphanageLoadResultRepository();
+  const sut = new DbOrphanageLoadResult(orphanageLoadResultRepository);
 
   return {
     sut,
-    orphanagesLoadResultRepository,
+    orphanageLoadResultRepository,
   } as const;
 };
 
 describe("DbOrphanageLoadResult", () => {
   test("Should call OrphanageLoadResult", async () => {
-    const { sut, orphanagesLoadResultRepository } = makeSut();
+    const { sut, orphanageLoadResultRepository } = makeSut();
 
-    const orphanagesLoadResultRepositorySpy = jest.spyOn(
-      orphanagesLoadResultRepository,
+    const orphanageLoadResultRepositorySpy = jest.spyOn(
+      orphanageLoadResultRepository,
       "loadResult"
     );
 
     await sut.loadResult("123");
 
-    expect(orphanagesLoadResultRepositorySpy).toHaveBeenCalled();
+    expect(orphanageLoadResultRepositorySpy).toHaveBeenCalled();
   });
 
   test("Should return an orphanage that matches provided id", async () => {
-    const { sut, orphanagesLoadResultRepository } = makeSut();
+    const { sut, orphanageLoadResultRepository } = makeSut();
 
-    const uuid = orphanagesLoadResultRepository.orphanages[0]._id;
+    const uuid = orphanageLoadResultRepository.orphanages[0]._id;
 
     const orphanage = await sut.loadResult(uuid as string);
 
-    expect(orphanage).toEqual(orphanagesLoadResultRepository.result);
+    expect(orphanage).toEqual(orphanageLoadResultRepository.result);
   });
 
   test("Should throw if OrphanageLoadResultRepository throws", async () => {
-    const { sut, orphanagesLoadResultRepository } = makeSut();
+    const { sut, orphanageLoadResultRepository } = makeSut();
 
     jest
-      .spyOn(orphanagesLoadResultRepository, "loadResult")
+      .spyOn(orphanageLoadResultRepository, "loadResult")
       .mockImplementationOnce(async () => {
         throw new Error("Caused by test");
       });

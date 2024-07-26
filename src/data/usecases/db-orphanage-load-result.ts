@@ -3,10 +3,10 @@ import { OrphanageLoadResultRepository } from "@/data/protocols";
 
 export class DbOrphanageLoadResult implements OrphanageLoadResult {
   constructor(
-    private readonly orphanagesLoadResultRepository: OrphanageLoadResultRepository
+    private readonly orphanageLoadResultRepository: OrphanageLoadResultRepository
   ) {}
 
   loadResult(orphanageId: string): Promise<OrphanageLoadResult.Result> {
-    return this.orphanagesLoadResultRepository.loadResult(orphanageId);
+    return this.orphanageLoadResultRepository.loadResult(orphanageId);
   }
 }
