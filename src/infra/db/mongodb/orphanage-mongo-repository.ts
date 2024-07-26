@@ -1,9 +1,10 @@
-import { Collection, ObjectId } from "mongodb";
+import { Collection, ObjectId, WithId } from "mongodb";
 
 import type {
   OrphanagesLoadRepository,
-  OrphanageLoadByIdRepository,
   OrphanageCreateRepository,
+  OrphanageUpdateRepository,
+  OrphanageLoadByIdRepository,
 } from "@/data/protocols/db";
 import { MongoHelper } from "@/infra/db/mongodb";
 import type { OrphanageModel } from "@/domain/models";
@@ -12,6 +13,7 @@ export class OrphanageMongoRepository
   implements
     OrphanagesLoadRepository,
     OrphanageCreateRepository,
+    OrphanageUpdateRepository,
     OrphanageLoadByIdRepository
 {
   getCollection(): Collection<OrphanageModel> {
@@ -46,5 +48,23 @@ export class OrphanageMongoRepository
     await orphanagesCollection.insertOne(orphanage);
 
     return MongoHelper.map(orphanage);
+  }
+
+  async update(
+    orphanage: Partial<OrphanageModel>
+  ): Promise<OrphanageUpdateRepository.Result> {
+    const orphanagesCollection = this.getCollection();
+
+    const { id, ...orphanageRest } = orphanage;
+
+    const orphanageUpdated = await orphanagesCollection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { ...orphanageRest } },
+      { upsert: false, returnDocument: "after" }
+    );
+
+    return MongoHelper.map<OrphanageModel>(
+      orphanageUpdated as WithId<OrphanageModel>
+    );
   }
 }
