@@ -1,5 +1,5 @@
 import type { OrphanageModel } from "@/domain/models";
-import type { OrphanagesSave } from "@/domain/usecases";
+import type { OrphanageCreate } from "@/domain/usecases";
 
 import type {
   Controller,
@@ -10,7 +10,7 @@ import { badRequest, created, serverError } from "@/presentation/helpers";
 
 export class OrphanageCreateController implements Controller {
   constructor(
-    private readonly orphanagesSave: OrphanagesSave,
+    private readonly orphanagesSave: OrphanageCreate,
     private readonly validation: Validation
   ) {}
 
@@ -26,7 +26,9 @@ export class OrphanageCreateController implements Controller {
       if ("_id" in orphanage) delete orphanage._id;
       if ("id" in orphanage) delete orphanage.id;
 
-      const orphanageUpdated = await this.orphanagesSave.save(orphanage);
+      const orphanageUpdated = await this.orphanagesSave.create(
+        orphanage as OrphanageModel
+      );
 
       return created({ orphanage: orphanageUpdated });
     } catch (e) {

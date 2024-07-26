@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 
 import { mockOrphanageModel } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
-import type { OrphanagesSave } from "@/domain/usecases";
+import type { OrphanageCreate } from "@/domain/usecases";
 
 import { badRequest } from "@/presentation/helpers";
 import type { Validation } from "@/presentation/protocols";
@@ -25,14 +25,14 @@ const makeValidationSpy = () => {
 };
 
 const makeOrphanageCreate = () => {
-  class OrphanageCreateStub implements OrphanagesSave {
-    async save(
-      orphanage: Partial<OrphanageModel>
-    ): Promise<OrphanagesSave.Result> {
+  class OrphanageCreateStub implements OrphanageCreate {
+    async create(
+      orphanage: Exclude<OrphanageModel, "id">
+    ): Promise<OrphanageCreate.Result> {
       return {
-        id: new ObjectId().toString(),
         ...orphanage,
-      } as OrphanagesSave.Result;
+        id: new ObjectId().toString(),
+      } as OrphanageCreate.Result;
     }
   }
 
@@ -55,7 +55,7 @@ describe("OrphanageCreateController", () => {
   it("Should call OrphanageCreate with correct values", async () => {
     const { sut, orphanageCreate } = makeSut();
 
-    const orphanageCreateSpy = jest.spyOn(orphanageCreate, "save");
+    const orphanageCreateSpy = jest.spyOn(orphanageCreate, "create");
 
     const request = { orphanage: { name: faker.lorem.word() } };
     await sut.handle(request);
@@ -66,7 +66,7 @@ describe("OrphanageCreateController", () => {
   it("Should return 500 when OrphanageCreate throws", async () => {
     const { sut, orphanageCreate } = makeSut();
 
-    jest.spyOn(orphanageCreate, "save").mockImplementation(async () => {
+    jest.spyOn(orphanageCreate, "create").mockImplementation(async () => {
       throw new Error("Caused by test");
     });
 

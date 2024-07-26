@@ -2,8 +2,8 @@ import { Collection, ObjectId } from "mongodb";
 
 import type {
   OrphanagesLoadRepository,
-  OrphanagesSaveRepository,
   OrphanageLoadByIdRepository,
+  OrphanageCreateRepository,
 } from "@/data/protocols/db";
 import { MongoHelper } from "@/infra/db/mongodb";
 import type { OrphanageModel } from "@/domain/models";
@@ -11,7 +11,7 @@ import type { OrphanageModel } from "@/domain/models";
 export class OrphanageMongoRepository
   implements
     OrphanagesLoadRepository,
-    OrphanagesSaveRepository,
+    OrphanageCreateRepository,
     OrphanageLoadByIdRepository
 {
   getCollection(): Collection<OrphanageModel> {
@@ -38,19 +38,13 @@ export class OrphanageMongoRepository
     return orphanage ? MongoHelper.map<OrphanageModel>(orphanage) : null;
   }
 
-  async save(
-    orphanage: Partial<OrphanageModel>
-  ): Promise<OrphanagesSaveRepository.Result> {
+  async create(
+    orphanage: Exclude<OrphanageModel, "id">
+  ): Promise<OrphanageCreateRepository.Result> {
     const orphanagesCollection = this.getCollection();
 
-    const { id, ...orphanageRest } = orphanage;
+    await orphanagesCollection.insertOne(orphanage);
 
-    const orphanageUpdated = await orphanagesCollection.findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $set: { ...orphanageRest } },
-      { upsert: true, returnDocument: "after" }
-    );
-
-    return orphanageUpdated ? MongoHelper.map(orphanageUpdated) : null;
+    return MongoHelper.map(orphanage);
   }
 }
