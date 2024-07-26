@@ -3,7 +3,7 @@ import { Collection, ObjectId } from "mongodb";
 import type {
   OrphanagesLoadRepository,
   OrphanagesSaveRepository,
-  OrphanageLoadResultRepository,
+  OrphanageLoadByIdRepository,
 } from "@/data/protocols/db";
 import type { OrphanageModel } from "@/domain/models";
 import { MongoHelper, QueryBuilder } from "@/infra/db/mongodb";
@@ -12,7 +12,7 @@ export class OrphanageMongoRepository
   implements
     OrphanagesLoadRepository,
     OrphanagesSaveRepository,
-    OrphanageLoadResultRepository
+    OrphanageLoadByIdRepository
 {
   getCollection(): Collection<OrphanageModel> {
     return MongoHelper.getCollection<OrphanageModel>("orphanage");
@@ -26,9 +26,9 @@ export class OrphanageMongoRepository
     return MongoHelper.mapCollection(orphanages);
   }
 
-  async loadResult(
+  async loadById(
     orphanageId: string | ObjectId
-  ): Promise<OrphanageLoadResultRepository.Result> {
+  ): Promise<OrphanageLoadByIdRepository.Result> {
     const orphanagesCollection = this.getCollection();
 
     const query = new QueryBuilder()

@@ -1,8 +1,8 @@
 import { OrphanageMongoRepository } from "@/infra/db";
-import { DbOrphanageLoadResult } from "@/data/usecases";
-import type { OrphanageLoadResult } from "@/domain/usecases";
+import { DbOrphanageLoadById } from "@/data/usecases";
+import type { OrphanageLoadById } from "@/domain/usecases";
 
-export const makeDbOrphanageLoadResult = (): OrphanageLoadResult => {
+export const makeDbOrphanageLoadById = (): OrphanageLoadById => {
   const orphanageMongoRepository = new OrphanageMongoRepository();
-  return new DbOrphanageLoadResult(orphanageMongoRepository);
+  return new DbOrphanageLoadById(orphanageMongoRepository);
 };

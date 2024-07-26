@@ -1,12 +1,10 @@
 import { makeLogControllerDecorator } from "@/main/factories";
 
 import type { Controller } from "@/presentation/protocols";
-import { makeDbOrphanageLoadResult } from "@/main/factories/usecases";
-import { OrphanageLoadResultController } from "@/presentation/controllers";
+import { makeDbOrphanageLoadById } from "@/main/factories/usecases";
+import { OrphanageLoadByIdController } from "@/presentation/controllers";
 
-export const makeOrphanageLoadResultController = (): Controller => {
-  const controller = new OrphanageLoadResultController(
-    makeDbOrphanageLoadResult()
-  );
+export const makeOrphanageLoadByIdController = (): Controller => {
+  const controller = new OrphanageLoadByIdController(makeDbOrphanageLoadById());
   return makeLogControllerDecorator(controller);
 };

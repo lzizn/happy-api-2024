@@ -1,12 +1,12 @@
 import { ObjectId } from "mongodb";
 import { OrphanageModel } from "@/domain/models";
 
-export interface OrphanageLoadResultRepository {
-  loadResult: (
+export interface OrphanageLoadByIdRepository {
+  loadById: (
     orphanageId: string | ObjectId
-  ) => Promise<OrphanageLoadResultRepository.Result>;
+  ) => Promise<OrphanageLoadByIdRepository.Result>;
 }
 
-export namespace OrphanageLoadResultRepository {
+export namespace OrphanageLoadByIdRepository {
   export type Result = OrphanageModel | null;
 }

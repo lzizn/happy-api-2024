@@ -1,48 +1,45 @@
 import { faker } from "@faker-js/faker";
 
 import type { OrphanageModel } from "@/domain/models";
-import type { OrphanageLoadResult } from "@/domain/usecases";
+import type { OrphanageLoadById } from "@/domain/usecases";
 
 import {
   ServerError,
   InvalidParamError,
   MissingParamError,
 } from "@/presentation/errors";
-import { OrphanageLoadResultController } from "@/presentation/controllers";
+import { OrphanageLoadByIdController } from "@/presentation/controllers";
 
-const makeOrphanageLoadResult = () => {
-  class OrphanageLoadResultStub implements OrphanageLoadResult {
-    async loadResult(): Promise<OrphanageLoadResult.Result> {
-      return {} as OrphanageLoadResult.Result;
+const makeOrphanageLoadById = () => {
+  class OrphanageLoadByIdStub implements OrphanageLoadById {
+    async loadById(): Promise<OrphanageLoadById.Result> {
+      return {} as OrphanageLoadById.Result;
     }
   }
 
-  return new OrphanageLoadResultStub();
+  return new OrphanageLoadByIdStub();
 };
 
 const makeSut = () => {
-  const orphanageLoadResult = makeOrphanageLoadResult();
-  const sut = new OrphanageLoadResultController(orphanageLoadResult);
+  const orphanageLoadById = makeOrphanageLoadById();
+  const sut = new OrphanageLoadByIdController(orphanageLoadById);
   const id = faker.string.uuid();
 
   return {
     id,
     sut,
-    orphanageLoadResult,
+    orphanageLoadById,
   } as const;
 };
 
-describe("OrphanageLoadResultController", () => {
-  it("Should call OrphanageLoadResult", async () => {
-    const { sut, id, orphanageLoadResult } = makeSut();
+describe("OrphanageLoadByIdController", () => {
+  it("Should call OrphanageLoadById", async () => {
+    const { sut, id, orphanageLoadById } = makeSut();
 
-    const orphanageLoadResultSpy = jest.spyOn(
-      orphanageLoadResult,
-      "loadResult"
-    );
+    const orphanageLoadByIdSpy = jest.spyOn(orphanageLoadById, "loadById");
 
     await sut.handle({ orphanageId: id });
-    expect(orphanageLoadResultSpy).toHaveBeenCalled();
+    expect(orphanageLoadByIdSpy).toHaveBeenCalled();
   });
 
   it("Should return 400 with InvalidParamError when orphanageId is null", async () => {
@@ -67,14 +64,12 @@ describe("OrphanageLoadResultController", () => {
     expect(response.body).toEqual(new MissingParamError("orphanageId"));
   });
 
-  it("Should return 500 when OrphanageLoadResult throws", async () => {
-    const { sut, id, orphanageLoadResult } = makeSut();
+  it("Should return 500 when OrphanageLoadById throws", async () => {
+    const { sut, id, orphanageLoadById } = makeSut();
 
-    jest
-      .spyOn(orphanageLoadResult, "loadResult")
-      .mockImplementation(async () => {
-        throw new Error("Caused by test");
-      });
+    jest.spyOn(orphanageLoadById, "loadById").mockImplementation(async () => {
+      throw new Error("Caused by test");
+    });
 
     const response = await sut.handle({ orphanageId: id });
 
@@ -82,8 +77,8 @@ describe("OrphanageLoadResultController", () => {
     expect(response.body).toEqual(new ServerError());
   });
 
-  it("Should return result from OrphanageLoadResult", async () => {
-    const { sut, orphanageLoadResult } = makeSut();
+  it("Should return result from OrphanageLoadById", async () => {
+    const { sut, orphanageLoadById } = makeSut();
 
     const mockedOrphanage: OrphanageModel = {
       _id: "1",
@@ -96,25 +91,22 @@ describe("OrphanageLoadResultController", () => {
       instructions: "None",
     };
 
-    const orphanageLoadResultSpy = jest.spyOn(
-      orphanageLoadResult,
-      "loadResult"
-    );
-    orphanageLoadResultSpy.mockImplementation(async () => mockedOrphanage);
+    const orphanageLoadByIdSpy = jest.spyOn(orphanageLoadById, "loadById");
+    orphanageLoadByIdSpy.mockImplementation(async () => mockedOrphanage);
 
     const response = await sut.handle({
       orphanageId: mockedOrphanage._id as string,
     });
 
-    expect(orphanageLoadResultSpy).toHaveBeenCalled();
+    expect(orphanageLoadByIdSpy).toHaveBeenCalled();
     expect(response.body).toStrictEqual({ orphanage: mockedOrphanage });
   });
 
-  it("Should return 204 and null if response from OrphanageLoadResult is null", async () => {
-    const { sut, id, orphanageLoadResult } = makeSut();
+  it("Should return 204 and null if response from OrphanageLoadById is null", async () => {
+    const { sut, id, orphanageLoadById } = makeSut();
 
     jest
-      .spyOn(orphanageLoadResult, "loadResult")
+      .spyOn(orphanageLoadById, "loadById")
       .mockImplementation(async () => null);
 
     const httpResponse = await sut.handle({ orphanageId: id });

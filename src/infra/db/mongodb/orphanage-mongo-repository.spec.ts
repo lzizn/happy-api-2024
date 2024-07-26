@@ -47,10 +47,10 @@ describe("OrphanageMongoRepository", () => {
     });
   });
 
-  describe("loadResult()", () => {
+  describe("loadById()", () => {
     it("Should return null since when there no matches", async () => {
       const sut = makeSut();
-      const orphanage = await sut.loadResult("-1");
+      const orphanage = await sut.loadById("-1");
 
       expect(orphanage).toBe(null);
     });
@@ -61,7 +61,7 @@ describe("OrphanageMongoRepository", () => {
       const sut = makeSut();
       const orphanageId = orphanagesSeed[0]._id as string;
 
-      const orphanage = await sut.loadResult(orphanageId);
+      const orphanage = await sut.loadById(orphanageId);
 
       expect(orphanage!.id).toBe(orphanagesSeed[0]._id);
 

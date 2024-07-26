@@ -1,9 +1,9 @@
 import { OrphanageModel } from "@/domain/models";
 
-export interface OrphanageLoadResult {
-  loadResult: (orphanageId: string) => Promise<OrphanageLoadResult.Result>;
+export interface OrphanageLoadById {
+  loadById: (orphanageId: string) => Promise<OrphanageLoadById.Result>;
 }
 
-export namespace OrphanageLoadResult {
+export namespace OrphanageLoadById {
   export type Result = OrphanageModel | null;
 }

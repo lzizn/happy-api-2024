@@ -1,12 +1,12 @@
-import { OrphanageLoadResult } from "@/domain/usecases";
-import { OrphanageLoadResultRepository } from "@/data/protocols";
+import { OrphanageLoadById } from "@/domain/usecases";
+import { OrphanageLoadByIdRepository } from "@/data/protocols";
 
-export class DbOrphanageLoadResult implements OrphanageLoadResult {
+export class DbOrphanageLoadById implements OrphanageLoadById {
   constructor(
-    private readonly orphanageLoadResultRepository: OrphanageLoadResultRepository
+    private readonly orphanageLoadByIdRepository: OrphanageLoadByIdRepository
   ) {}
 
-  loadResult(orphanageId: string): Promise<OrphanageLoadResult.Result> {
-    return this.orphanageLoadResultRepository.loadResult(orphanageId);
+  loadById(orphanageId: string): Promise<OrphanageLoadById.Result> {
+    return this.orphanageLoadByIdRepository.loadById(orphanageId);
   }
 }

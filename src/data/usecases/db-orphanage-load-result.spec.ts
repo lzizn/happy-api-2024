@@ -3,19 +3,17 @@ import { ObjectId } from "mongodb";
 import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
 
-import { DbOrphanageLoadResult } from "@/data/usecases";
-import { OrphanageLoadResultRepository } from "@/data/protocols";
+import { DbOrphanageLoadById } from "@/data/usecases";
+import { OrphanageLoadByIdRepository } from "@/data/protocols";
 
-const makeOrphanageLoadResultRepository = () => {
-  class OrphanageLoadResultRepositoryStub
-    implements OrphanageLoadResultRepository
-  {
+const makeOrphanageLoadByIdRepository = () => {
+  class OrphanageLoadByIdRepositoryStub implements OrphanageLoadByIdRepository {
     orphanages: OrphanageModel[] = mockOrphanageModels(10);
-    result: OrphanageLoadResultRepository.Result = null;
+    result: OrphanageLoadByIdRepository.Result = null;
 
-    async loadResult(
+    async loadById(
       orphanageId: string | ObjectId
-    ): Promise<OrphanageLoadResultRepository.Result> {
+    ): Promise<OrphanageLoadByIdRepository.Result> {
       const orphanage =
         this.orphanages.find((x) => x._id === orphanageId) ?? null;
 
@@ -24,53 +22,53 @@ const makeOrphanageLoadResultRepository = () => {
     }
   }
 
-  return new OrphanageLoadResultRepositoryStub();
+  return new OrphanageLoadByIdRepositoryStub();
 };
 
 const makeSut = () => {
-  const orphanageLoadResultRepository = makeOrphanageLoadResultRepository();
-  const sut = new DbOrphanageLoadResult(orphanageLoadResultRepository);
+  const orphanageLoadByIdRepository = makeOrphanageLoadByIdRepository();
+  const sut = new DbOrphanageLoadById(orphanageLoadByIdRepository);
 
   return {
     sut,
-    orphanageLoadResultRepository,
+    orphanageLoadByIdRepository,
   } as const;
 };
 
-describe("DbOrphanageLoadResult", () => {
-  test("Should call OrphanageLoadResult", async () => {
-    const { sut, orphanageLoadResultRepository } = makeSut();
+describe("DbOrphanageLoadById", () => {
+  test("Should call OrphanageLoadById", async () => {
+    const { sut, orphanageLoadByIdRepository } = makeSut();
 
-    const orphanageLoadResultRepositorySpy = jest.spyOn(
-      orphanageLoadResultRepository,
-      "loadResult"
+    const orphanageLoadByIdRepositorySpy = jest.spyOn(
+      orphanageLoadByIdRepository,
+      "loadById"
     );
 
-    await sut.loadResult("123");
+    await sut.loadById("123");
 
-    expect(orphanageLoadResultRepositorySpy).toHaveBeenCalled();
+    expect(orphanageLoadByIdRepositorySpy).toHaveBeenCalled();
   });
 
   test("Should return an orphanage that matches provided id", async () => {
-    const { sut, orphanageLoadResultRepository } = makeSut();
+    const { sut, orphanageLoadByIdRepository } = makeSut();
 
-    const uuid = orphanageLoadResultRepository.orphanages[0]._id;
+    const uuid = orphanageLoadByIdRepository.orphanages[0]._id;
 
-    const orphanage = await sut.loadResult(uuid as string);
+    const orphanage = await sut.loadById(uuid as string);
 
-    expect(orphanage).toEqual(orphanageLoadResultRepository.result);
+    expect(orphanage).toEqual(orphanageLoadByIdRepository.result);
   });
 
-  test("Should throw if OrphanageLoadResultRepository throws", async () => {
-    const { sut, orphanageLoadResultRepository } = makeSut();
+  test("Should throw if OrphanageLoadByIdRepository throws", async () => {
+    const { sut, orphanageLoadByIdRepository } = makeSut();
 
     jest
-      .spyOn(orphanageLoadResultRepository, "loadResult")
+      .spyOn(orphanageLoadByIdRepository, "loadById")
       .mockImplementationOnce(async () => {
         throw new Error("Caused by test");
       });
 
-    const promise = sut.loadResult("123");
+    const promise = sut.loadById("123");
     await expect(promise).rejects.toThrow();
   });
 });
