@@ -6,6 +6,7 @@ import {
   OrphanageMongoRepository,
 } from "@/infra/db";
 import { mockOrphanageModel } from "@/domain/mocks";
+import type { OrphanageModel } from "@/domain/models";
 
 const makeSut = () => {
   return new OrphanageMongoRepository();
@@ -86,6 +87,30 @@ describe("OrphanageMongoRepository", () => {
         ...orphanageModelMock,
         id: orphanageDb.id,
       });
+    });
+  });
+
+  describe("update()", () => {
+    it("Should update existing orphanage", async () => {
+      const { orphanagesDb } = await seedOrphanages(1);
+
+      const orphanageTarget = orphanagesDb[0];
+
+      const sut = makeSut();
+
+      const newOrphanageData: Partial<OrphanageModel> = {
+        id: orphanageTarget.id,
+        name: "new name",
+        latitude: -1,
+        longitude: -1,
+      };
+
+      const orphanageUpdated = await sut.update(newOrphanageData);
+
+      expect(orphanageUpdated.id).toEqual(orphanageTarget.id);
+      expect(orphanageUpdated.name).toEqual(newOrphanageData.name);
+      expect(orphanageUpdated.latitude).toEqual(newOrphanageData.latitude);
+      expect(orphanageUpdated.longitude).toEqual(newOrphanageData.longitude);
     });
   });
 });
