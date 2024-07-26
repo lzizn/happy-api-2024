@@ -1,9 +1,8 @@
-import { ObjectId } from "mongodb";
 import { OrphanageModel } from "@/domain/models";
 
 export interface OrphanageLoadByIdRepository {
   loadById: (
-    orphanageId: string | ObjectId
+    orphanageId: string
   ) => Promise<OrphanageLoadByIdRepository.Result>;
 }
 

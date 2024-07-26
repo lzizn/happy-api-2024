@@ -1,4 +1,6 @@
-import { MongoHelper } from "./mongo-helper";
+import { ObjectId } from "mongodb";
+
+import { MongoHelper } from "@/infra/db";
 import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
 
@@ -12,9 +14,7 @@ export const cleanOrphanagesSeed = async (orphanages?: OrphanageModel[]) => {
   }
 
   await orphanageCollection.deleteMany({
-    _id: {
-      $in: orphanages.map((x) => x._id as string),
-    },
+    _id: { $in: orphanages.map((x) => new ObjectId(x.id)) },
   });
 };
 
@@ -24,18 +24,19 @@ export const seedOrphanages = async (amount: number = 2) => {
 
   const orphanagesSeed = mockOrphanageModels(amount);
 
-  await orphanageCollection.insertMany(orphanagesSeed);
+  const orphanagesWithIds = orphanagesSeed.map((x) => {
+    const { id, ...rest } = x;
+    return { _id: new ObjectId(id), ...rest };
+  });
+
+  await orphanageCollection.insertMany(orphanagesWithIds);
 
   const orphanagesDb = await orphanageCollection
-    .find({
-      _id: {
-        $in: orphanagesSeed.map((x) => x._id as string),
-      },
-    })
+    .find({ _id: { $in: orphanagesWithIds.map((x) => x._id) } })
     .toArray();
 
   return {
-    orphanagesDb,
+    orphanagesDb: MongoHelper.mapCollection<OrphanageModel>(orphanagesDb),
     orphanagesSeed,
   };
 };

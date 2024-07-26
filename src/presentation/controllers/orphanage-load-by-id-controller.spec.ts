@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { ObjectId } from "mongodb";
 
 import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadById } from "@/domain/usecases";
@@ -23,7 +23,7 @@ const makeOrphanageLoadById = () => {
 const makeSut = () => {
   const orphanageLoadById = makeOrphanageLoadById();
   const sut = new OrphanageLoadByIdController(orphanageLoadById);
-  const id = faker.string.uuid();
+  const id = new ObjectId().toString();
 
   return {
     id,
@@ -81,7 +81,7 @@ describe("OrphanageLoadByIdController", () => {
     const { sut, orphanageLoadById } = makeSut();
 
     const mockedOrphanage: OrphanageModel = {
-      _id: "1",
+      id: new ObjectId().toString(),
       description: "aa",
       name: "Maria's Heart",
       open_on_weekends: true,
@@ -95,7 +95,7 @@ describe("OrphanageLoadByIdController", () => {
     orphanageLoadByIdSpy.mockImplementation(async () => mockedOrphanage);
 
     const response = await sut.handle({
-      orphanageId: mockedOrphanage._id as string,
+      orphanageId: mockedOrphanage.id as string,
     });
 
     expect(orphanageLoadByIdSpy).toHaveBeenCalled();

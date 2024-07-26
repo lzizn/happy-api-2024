@@ -1,5 +1,4 @@
 export interface OrphanageModel {
-  _id?: string;
   id?: string;
   name: string;
   latitude: number;

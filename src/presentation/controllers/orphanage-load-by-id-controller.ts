@@ -17,7 +17,7 @@ export class OrphanageLoadByIdController implements Controller {
         return badRequest(new MissingParamError("orphanageId"));
       }
 
-      if (typeof orphanageId !== "string") {
+      if (typeof orphanageId !== "string" || orphanageId.length !== 24) {
         return badRequest(new InvalidParamError("orphanageId"));
       }
 

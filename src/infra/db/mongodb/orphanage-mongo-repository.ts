@@ -5,8 +5,8 @@ import type {
   OrphanagesSaveRepository,
   OrphanageLoadByIdRepository,
 } from "@/data/protocols/db";
+import { MongoHelper } from "@/infra/db/mongodb";
 import type { OrphanageModel } from "@/domain/models";
-import { MongoHelper, QueryBuilder } from "@/infra/db/mongodb";
 
 export class OrphanageMongoRepository
   implements
@@ -23,27 +23,19 @@ export class OrphanageMongoRepository
 
     const orphanages = await orphanagesCollection.find().toArray();
 
-    return MongoHelper.mapCollection(orphanages);
+    return MongoHelper.mapCollection<OrphanageModel>(orphanages);
   }
 
   async loadById(
-    orphanageId: string | ObjectId
+    orphanageId: string
   ): Promise<OrphanageLoadByIdRepository.Result> {
     const orphanagesCollection = this.getCollection();
 
-    const query = new QueryBuilder()
-      .match({
-        _id: orphanageId,
-      })
-      .build();
+    const orphanage = await orphanagesCollection.findOne({
+      _id: new ObjectId(orphanageId),
+    });
 
-    const results = await orphanagesCollection.aggregate(query).toArray();
-
-    const orphanage = results[0]
-      ? MongoHelper.map<OrphanageModel>(results[0])
-      : null;
-
-    return orphanage;
+    return orphanage ? MongoHelper.map<OrphanageModel>(orphanage) : null;
   }
 
   async save(
@@ -51,13 +43,11 @@ export class OrphanageMongoRepository
   ): Promise<OrphanagesSaveRepository.Result> {
     const orphanagesCollection = this.getCollection();
 
-    const { id, _id, ...orphanageRest } = orphanage;
-
-    const orphanageId = id || _id;
+    const { id, ...orphanageRest } = orphanage;
 
     const orphanageUpdated = await orphanagesCollection.findOneAndUpdate(
-      { id: orphanageId },
-      { $set: { id: orphanageId, ...orphanageRest } },
+      { _id: new ObjectId(id) },
+      { $set: { ...orphanageRest } },
       { upsert: true, returnDocument: "after" }
     );
 

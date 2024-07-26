@@ -1,31 +1,31 @@
 import request from "supertest";
+import { ObjectId } from "mongodb";
 
 import { app } from "@/main/config/app";
-import { cleanOrphanagesSeed, MongoHelper, seedOrphanages } from "@/infra/db";
+import { cleanOrphanagesSeed, seedOrphanages } from "@/infra/db";
 
 describe("Orphanages Routes", () => {
+  beforeEach(async () => {
+    await cleanOrphanagesSeed();
+  });
+
+  afterEach(async () => {
+    await cleanOrphanagesSeed();
+  });
+
   describe("/orphanages", () => {
     it("Should return 200 and list all orphanages", async () => {
       await cleanOrphanagesSeed();
 
-      // * Seed DB
-      const { orphanagesSeed } = await seedOrphanages();
+      const { orphanagesDb } = await seedOrphanages();
 
       const response = await request(app).get("/api/orphanages");
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty(
-        "orphanages",
-        MongoHelper.mapCollection(orphanagesSeed)
-      );
-
-      // * Clean up DB
-      await cleanOrphanagesSeed(orphanagesSeed);
+      expect(response.body).toEqual({ orphanages: orphanagesDb });
     });
 
     it("Should return 204 and empty object for body if there are no orphanages in DB", async () => {
-      await cleanOrphanagesSeed();
-
       const response = await request(app).get("/api/orphanages");
 
       expect(response.body).toEqual({});
@@ -36,32 +36,33 @@ describe("Orphanages Routes", () => {
   describe("/orphanages/:orphanageId", () => {
     describe("Assuming orphanages in DB", () => {
       it("Should return 200 and matching orphanage", async () => {
-        await cleanOrphanagesSeed();
+        const { orphanagesDb } = await seedOrphanages(2);
 
-        const { orphanagesSeed } = await seedOrphanages(2);
-
-        const orphanageTarget = orphanagesSeed[0];
+        const orphanageTarget = orphanagesDb[0];
 
         const response = await request(app).get(
-          `/api/orphanages/${orphanageTarget._id as string}`
+          `/api/orphanages/${orphanageTarget.id as string}`
         );
-
-        orphanageTarget.id = orphanageTarget._id;
-        delete orphanageTarget._id;
 
         expect(response.statusCode).toBe(200);
         expect(response.body).toEqual({ orphanage: orphanageTarget });
-
-        await cleanOrphanagesSeed(orphanagesSeed);
       });
     });
 
     it("Should return 204 and empty object for body when there are no matches", async () => {
-      const orphanageId = -1;
-      const response = await request(app).get(`/api/orphanages/${orphanageId}`);
+      const randomId = new ObjectId().toString();
+      const response = await request(app).get(`/api/orphanages/${randomId}`);
 
-      expect(response.body).toEqual({});
       expect(response.statusCode).toBe(204);
+      expect(response.body).toEqual({});
+    });
+
+    it("Should return return an error when providing an invalid id", async () => {
+      const invalidId = -1;
+      const response = await request(app).get(`/api/orphanages/${invalidId}`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({ error: "Invalid param: orphanageId" });
     });
   });
 });

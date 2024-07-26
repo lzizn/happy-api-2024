@@ -8,14 +8,14 @@ import { OrphanageLoadByIdRepository } from "@/data/protocols";
 
 const makeOrphanageLoadByIdRepository = () => {
   class OrphanageLoadByIdRepositoryStub implements OrphanageLoadByIdRepository {
-    orphanages: OrphanageModel[] = mockOrphanageModels(10);
+    orphanagesMocked: OrphanageModel[] = mockOrphanageModels(10);
     result: OrphanageLoadByIdRepository.Result = null;
 
     async loadById(
       orphanageId: string | ObjectId
     ): Promise<OrphanageLoadByIdRepository.Result> {
       const orphanage =
-        this.orphanages.find((x) => x._id === orphanageId) ?? null;
+        this.orphanagesMocked.find((x) => x.id === orphanageId) ?? null;
 
       this.result = orphanage;
       return orphanage;
@@ -52,9 +52,10 @@ describe("DbOrphanageLoadById", () => {
   test("Should return an orphanage that matches provided id", async () => {
     const { sut, orphanageLoadByIdRepository } = makeSut();
 
-    const uuid = orphanageLoadByIdRepository.orphanages[0]._id;
+    const mockedOrphanageId =
+      orphanageLoadByIdRepository.orphanagesMocked[0].id;
 
-    const orphanage = await sut.loadById(uuid as string);
+    const orphanage = await sut.loadById(mockedOrphanageId as string);
 
     expect(orphanage).toEqual(orphanageLoadByIdRepository.result);
   });
