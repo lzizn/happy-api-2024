@@ -77,19 +77,17 @@ describe("Orphanages Routes", () => {
   });
 
   describe("GET /orphanages/:orphanageId", () => {
-    describe("Assuming orphanages in DB", () => {
-      it("Should return 200 and matching orphanage", async () => {
-        const { orphanagesDb } = await seedOrphanages(2);
+    it("Should return 200 and matching orphanage", async () => {
+      const { orphanagesDb } = await seedOrphanages(2);
 
-        const orphanageTarget = orphanagesDb[0];
+      const orphanageTarget = orphanagesDb[0];
 
-        const response = await request(app).get(
-          `/api/orphanages/${orphanageTarget.id as string}`
-        );
+      const response = await request(app).get(
+        `/api/orphanages/${orphanageTarget.id as string}`
+      );
 
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toEqual({ orphanage: orphanageTarget });
-      });
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({ orphanage: orphanageTarget });
     });
 
     it("Should return 204 and empty object for body when there are no matches", async () => {
@@ -100,7 +98,7 @@ describe("Orphanages Routes", () => {
       expect(response.body).toEqual({});
     });
 
-    it("Should return return an error when providing an invalid id", async () => {
+    it("Should return an error when providing an invalid id", async () => {
       const invalidId = -1;
       const response = await request(app).get(`/api/orphanages/${invalidId}`);
 
