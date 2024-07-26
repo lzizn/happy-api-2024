@@ -3,6 +3,7 @@ import {
   cleanOrphanagesSeed,
   OrphanageMongoRepository,
 } from "@/infra/db";
+import { mockOrphanageModel } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
 
 const makeSut = () => {
@@ -65,6 +66,52 @@ describe("OrphanageMongoRepository", () => {
       expect(orphanage!.id).toBe(orphanagesSeed[0]._id);
 
       await cleanOrphanagesSeed(orphanagesSeed);
+    });
+  });
+
+  describe("save()", () => {
+    it("Should create new orphanage if it does not exist", async () => {
+      const orphanageModelMock = mockOrphanageModel();
+
+      const sut = makeSut();
+      const orphanageDb = await sut.save(orphanageModelMock);
+
+      expect(orphanageDb).not.toBe(null);
+
+      // just for type-sake.. if its null it would fail anyway
+      if (!orphanageDb) return;
+
+      expect(orphanageDb.name).toEqual(orphanageModelMock.name);
+      expect(orphanageDb.latitude).toEqual(orphanageModelMock.latitude);
+      expect(orphanageDb.longitude).toEqual(orphanageModelMock.longitude);
+      expect(orphanageDb.description).toEqual(orphanageModelMock.description);
+      expect(orphanageDb.instructions).toEqual(orphanageModelMock.instructions);
+    });
+
+    it("Should update orphanage if it exists", async () => {
+      const { orphanagesSeed } = await seedOrphanages(1);
+
+      const sut = makeSut();
+
+      const newOrphanageData = {
+        id: orphanagesSeed[0]._id,
+        name: "new name",
+        description: "new description",
+        latitude: -1,
+        longitude: -1,
+      };
+
+      const newOrphanageDb = await sut.save(newOrphanageData);
+
+      expect(newOrphanageDb).not.toBe(null);
+
+      // just for type-sake.. if its null it would fail anyway
+      if (!newOrphanageDb) return;
+
+      expect(newOrphanageDb.name).toEqual(newOrphanageData.name);
+      expect(newOrphanageDb.description).toEqual(newOrphanageData.description);
+      expect(newOrphanageDb.latitude).toEqual(newOrphanageData.latitude);
+      expect(newOrphanageDb.longitude).toEqual(newOrphanageData.longitude);
     });
   });
 });
