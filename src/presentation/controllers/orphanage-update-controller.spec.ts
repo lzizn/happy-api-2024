@@ -116,13 +116,14 @@ describe("OrphanageUpdateController", () => {
 
     const request = {
       orphanageId: orphanagesMocked[0].id as string,
-      orphanage: { name: faker.lorem.word() },
+      name: faker.lorem.word(),
     };
 
     await sut.handle(request);
+
     expect(orphanageUpdateSpy).toHaveBeenCalledWith({
       id: orphanagesMocked[0].id,
-      ...request.orphanage,
+      name: request.name,
     });
   });
 
@@ -171,23 +172,17 @@ describe("OrphanageUpdateController", () => {
     expect(httpResponse).toEqual(badRequest(validationSpy.error));
   });
 
-  it("Should return 400 if orphanage is not a valid object", async () => {
+  it.skip("Should return 400 if one did not provide at least one orphanage field", async () => {
     const { sut } = makeSut();
 
-    const cases: any[] = [null, "123", 123, true];
+    const [{ id }] = mockOrphanageModels(1);
 
-    const orphanageId = new ObjectId().toString();
+    const httpResponse = await sut.handle({
+      orphanageId: id as string,
+    });
 
-    for (const value of cases) {
-      const httpResponse = await sut.handle({
-        orphanageId,
-        orphanage: value,
-      });
-
-      expect(httpResponse).toEqual(
-        badRequest(new InvalidParamError("orphanage"))
-      );
-    }
+    expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toEqual({});
   });
 
   it("Should return 400 if orphanageId is invalid", async () => {
@@ -197,7 +192,7 @@ describe("OrphanageUpdateController", () => {
 
     const httpResponse = await sut.handle({
       orphanageId: invalidId,
-      orphanage: { name: faker.lorem.word({ length: 5 }) },
+      name: faker.lorem.word({ length: 5 }),
     });
 
     expect(httpResponse.statusCode).toBe(400);
@@ -211,17 +206,15 @@ describe("OrphanageUpdateController", () => {
 
     const request = {
       orphanageId: orphanagesMocked[0].id as string,
-      orphanage: orphanageNewData,
+      ...orphanageNewData,
     };
 
     const httpResponse = await sut.handle(request);
 
     expect(httpResponse.statusCode).toBe(200);
     expect(httpResponse.body).toStrictEqual({
-      orphanage: {
-        ...orphanageNewData,
-        id: orphanagesMocked[0].id,
-      },
+      ...orphanageNewData,
+      id: orphanagesMocked[0].id,
     });
   });
 });

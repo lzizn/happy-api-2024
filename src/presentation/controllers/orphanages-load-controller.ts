@@ -10,7 +10,7 @@ export class OrphanagesLoadController implements Controller {
     try {
       const orphanages = await this.orphanagesLoad.load();
 
-      return orphanages.length ? ok({ orphanages }) : noContent();
+      return orphanages.length ? ok(orphanages) : noContent();
     } catch (e) {
       return serverError(e as Error);
     }

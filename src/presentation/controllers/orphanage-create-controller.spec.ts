@@ -57,10 +57,10 @@ describe("OrphanageCreateController", () => {
 
     const orphanageCreateSpy = jest.spyOn(orphanageCreate, "create");
 
-    const request = { orphanage: { name: faker.lorem.word() } };
+    const request = { name: faker.lorem.word() };
     await sut.handle(request);
 
-    expect(orphanageCreateSpy).toHaveBeenCalledWith(request.orphanage);
+    expect(orphanageCreateSpy).toHaveBeenCalledWith(request);
   });
 
   it("Should return 500 when OrphanageCreate throws", async () => {
@@ -70,7 +70,7 @@ describe("OrphanageCreateController", () => {
       throw new Error("Caused by test");
     });
 
-    const response = await sut.handle({ orphanage: {} });
+    const response = await sut.handle({});
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toEqual(new ServerError());
@@ -79,10 +79,10 @@ describe("OrphanageCreateController", () => {
   it("Should call Validation with correct value", async () => {
     const { sut, validationSpy } = makeSut();
 
-    const request = { orphanage: { name: faker.lorem.word() } };
+    const request = { name: faker.lorem.word() };
     await sut.handle(request);
 
-    expect(validationSpy.input).toEqual(request.orphanage);
+    expect(validationSpy.input).toEqual(request);
   });
 
   it("Should return 400 if Validation returns an error", async () => {
@@ -91,7 +91,7 @@ describe("OrphanageCreateController", () => {
     validationSpy.error = new MissingParamError("instructions");
 
     const httpResponse = await sut.handle({
-      orphanage: { name: faker.lorem.word({ length: 5 }) },
+      name: faker.lorem.word({ length: 5 }),
     });
 
     expect(httpResponse).toEqual(badRequest(validationSpy.error));
@@ -104,14 +104,12 @@ describe("OrphanageCreateController", () => {
 
     delete orphanage.id;
 
-    const response = await sut.handle({ orphanage });
+    const response = await sut.handle(orphanage);
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toStrictEqual({
-      orphanage: {
-        id: response.body.orphanage.id,
-        ...orphanage,
-      },
+      id: response.body.id,
+      ...orphanage,
     });
   });
 
@@ -121,26 +119,26 @@ describe("OrphanageCreateController", () => {
     const orphanage: Partial<OrphanageModel> = mockOrphanageModel();
 
     // creating once
-    const response_1 = await sut.handle({ orphanage });
+    const response_1 = await sut.handle({ ...orphanage });
 
     expect(response_1.statusCode).toBe(201);
     expect(response_1.body).toStrictEqual({
-      orphanage: {
-        id: response_1.body.orphanage.id,
-        ...orphanage,
-      },
+      ...orphanage,
+      id: response_1.body.id,
     });
 
     // creating twice, by providing exact same object, including same id
-    const response_2 = await sut.handle({ orphanage });
-    expect(response_2.statusCode).toBe(201);
-    expect(response_2.body).toStrictEqual({
-      orphanage: {
-        id: response_2.body.orphanage.id,
-        ...orphanage,
-      },
+    const response_2 = await sut.handle({
+      ...orphanage,
+      id: response_1.body.id,
     });
 
-    expect(response_1.body.orphanage.id).not.toBe(response_2.body.orphanage.id);
+    expect(response_2.statusCode).toBe(201);
+    expect(response_2.body).toStrictEqual({
+      ...orphanage,
+      id: response_2.body.id,
+    });
+
+    expect(response_1.body.id).not.toBe(response_2.body.id);
   });
 });

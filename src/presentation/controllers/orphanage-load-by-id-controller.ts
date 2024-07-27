@@ -23,7 +23,7 @@ export class OrphanageLoadByIdController implements Controller {
 
       const orphanage = await this.orphanagesLoad.loadById(orphanageId);
 
-      return orphanage ? ok({ orphanage }) : noContent();
+      return orphanage ? ok(orphanage) : noContent();
     } catch (e) {
       return serverError(e as Error);
     }

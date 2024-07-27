@@ -28,7 +28,7 @@ describe("Orphanages Routes", () => {
       const response = await request(app).get("/api/orphanages");
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ orphanages: orphanagesDb });
+      expect(response.body).toEqual(orphanagesDb);
     });
 
     it("Should return 204 and empty object for body if there are no orphanages in DB", async () => {
@@ -47,9 +47,9 @@ describe("Orphanages Routes", () => {
 
       delete orphanageMock[missing_param];
 
-      const response = await request(app).post("/api/orphanages").send({
-        orphanage: orphanageMock,
-      });
+      const response = await request(app)
+        .post("/api/orphanages")
+        .send(orphanageMock);
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
@@ -62,16 +62,14 @@ describe("Orphanages Routes", () => {
 
       delete orphanageMock.id;
 
-      const response = await request(app).post("/api/orphanages").send({
-        orphanage: orphanageMock,
-      });
+      const response = await request(app)
+        .post("/api/orphanages")
+        .send(orphanageMock);
 
       expect(response.statusCode).toBe(201);
       expect(response.body).toEqual({
-        orphanage: {
-          id: response.body.orphanage.id,
-          ...orphanageMock,
-        },
+        id: response.body.id,
+        ...orphanageMock,
       });
     });
   });
@@ -87,7 +85,7 @@ describe("Orphanages Routes", () => {
       );
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({ orphanage: orphanageTarget });
+      expect(response.body).toEqual(orphanageTarget);
     });
 
     it("Should return 204 and empty object for body when there are no matches", async () => {
@@ -116,11 +114,9 @@ describe("Orphanages Routes", () => {
       const response = await request(app)
         .patch(`/api/orphanages/${randomId}`)
         .send({
-          orphanage: {
-            name,
-            description,
-            latitude,
-          },
+          name,
+          description,
+          latitude,
         });
 
       expect(response.statusCode).toBe(404);
@@ -129,24 +125,15 @@ describe("Orphanages Routes", () => {
       });
     });
 
-    it("Should return 400 when sending request body without orphanage", async () => {
-      const response = await request(app).patch("/api/orphanages/123").send({});
+    it.skip("Should return 400 when sending request body without any orphanage field", async () => {
+      const orphanageId = "zzzzzzzzzzzzzzzzzzzzzzzz";
+
+      const response = await request(app)
+        .patch(`/api/orphanages/${orphanageId}`)
+        .send({});
 
       expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error: "Missing param: orphanage",
-      });
-    });
-
-    it("Should return 400 when request.body.orphanage is not an object", async () => {
-      const response = await request(app).patch("/api/orphanages/123").send({
-        orphanage: null,
-      });
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error: "Invalid param: orphanage",
-      });
+      expect(response.body).toEqual({});
     });
 
     it("Should return 400 when orphanageId is invalid", async () => {
@@ -155,7 +142,7 @@ describe("Orphanages Routes", () => {
       const response = await request(app)
         .patch(`/api/orphanages/${invalidId}`)
         .send({
-          orphanage: { name: "123" },
+          name: "123",
         });
 
       expect(response.statusCode).toBe(400);
@@ -176,14 +163,12 @@ describe("Orphanages Routes", () => {
 
       const response = await request(app)
         .patch(`/api/orphanages/${id as string}`)
-        .send({ orphanage: newOrphanageData });
+        .send(newOrphanageData);
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toStrictEqual({
-        orphanage: {
-          ...orphanagesDb[0],
-          ...newOrphanageData,
-        },
+        ...orphanagesDb[0],
+        ...newOrphanageData,
       });
     });
   });

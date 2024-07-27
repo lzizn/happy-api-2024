@@ -18,7 +18,7 @@ export class OrphanageCreateController implements Controller {
     request: OrphanagesCreateController.Request
   ): Promise<HttpResponse> {
     try {
-      const { orphanage } = request;
+      const { ...orphanage } = request;
 
       const error = this.validation.validate(orphanage);
       if (error) return badRequest(error);
@@ -30,7 +30,7 @@ export class OrphanageCreateController implements Controller {
         orphanage as OrphanageModel
       );
 
-      return created({ orphanage: orphanageUpdated });
+      return created(orphanageUpdated);
     } catch (e) {
       return serverError(e as Error);
     }
@@ -38,7 +38,5 @@ export class OrphanageCreateController implements Controller {
 }
 
 export namespace OrphanagesCreateController {
-  export type Request = {
-    orphanage: OrphanageModel | Partial<OrphanageModel>;
-  };
+  export type Request = OrphanageModel | Partial<OrphanageModel>;
 }

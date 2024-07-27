@@ -66,9 +66,7 @@ describe("OrphanagesLoadController", () => {
     const response = await sut.handle();
 
     expect(orphanagesLoadSpy).toHaveBeenCalled();
-    expect(response.body).toStrictEqual({
-      orphanages: mockedOrphanages,
-    });
+    expect(response.body).toStrictEqual(mockedOrphanages);
   });
 
   it("Should return 200 when there is at least one orphanage", async () => {
@@ -94,9 +92,8 @@ describe("OrphanagesLoadController", () => {
     const response = await sut.handle();
 
     expect(response.statusCode).toBe(200);
-    expect(response.body).toHaveProperty("orphanages");
-    expect(Array.isArray(response.body.orphanages)).toBe(true);
-    expect(response.body.orphanages.length).toBe(1);
+    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body.length).toBe(1);
   });
 
   it("Should return 204 and null if response from OrphanagesLoad is empty", async () => {

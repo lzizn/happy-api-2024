@@ -99,7 +99,7 @@ describe("OrphanageLoadByIdController", () => {
     });
 
     expect(orphanageLoadByIdSpy).toHaveBeenCalled();
-    expect(response.body).toStrictEqual({ orphanage: mockedOrphanage });
+    expect(response.body).toStrictEqual(mockedOrphanage);
   });
 
   it("Should return 204 and null if response from OrphanageLoadById is null", async () => {

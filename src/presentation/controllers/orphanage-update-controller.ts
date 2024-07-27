@@ -1,13 +1,13 @@
 import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadById, OrphanageUpdate } from "@/domain/usecases";
 
-import { InvalidParamError, NotFoundError } from "@/presentation/errors";
-import { ok, notFound, serverError, badRequest } from "@/presentation/helpers";
 import type {
   Controller,
   Validation,
   HttpResponse,
 } from "@/presentation/protocols";
+import { InvalidParamError, NotFoundError } from "@/presentation/errors";
+import { ok, notFound, serverError, badRequest } from "@/presentation/helpers";
 
 export class OrphanageUpdateController implements Controller {
   constructor(
@@ -23,11 +23,7 @@ export class OrphanageUpdateController implements Controller {
       const error = this.validation.validate(request);
       if (error) return badRequest(error);
 
-      const { orphanage, orphanageId } = request;
-
-      if (orphanage == null || typeof orphanage !== "object") {
-        return badRequest(new InvalidParamError("orphanage"));
-      }
+      const { orphanageId, ...orphanage } = request;
 
       if (typeof orphanageId !== "string" || orphanageId.length !== 24) {
         return badRequest(new InvalidParamError("orphanageId"));
@@ -48,7 +44,7 @@ export class OrphanageUpdateController implements Controller {
         id: orphanageId,
       });
 
-      return ok({ orphanage: orphanageUpdated });
+      return ok(orphanageUpdated);
     } catch (e) {
       return serverError(e as Error);
     }
@@ -56,8 +52,7 @@ export class OrphanageUpdateController implements Controller {
 }
 
 export namespace OrphanagesUpdateController {
-  export type Request = {
+  export type Request = Partial<OrphanageModel> & {
     orphanageId: string;
-    orphanage: Partial<OrphanageModel>;
   };
 }
