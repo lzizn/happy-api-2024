@@ -106,4 +106,85 @@ describe("Orphanages Routes", () => {
       expect(response.body).toEqual({ error: "Invalid param: orphanageId" });
     });
   });
+
+  describe("PATCH /orphanages/:orphanageId", () => {
+    it("Should return 400 and Not Found Error when orphanageId does not match any item in DB", async () => {
+      const { name, description, latitude } = mockOrphanageModel();
+
+      const randomId = new ObjectId().toString();
+
+      const response = await request(app)
+        .patch(`/api/orphanages/${randomId}`)
+        .send({
+          orphanage: {
+            name,
+            description,
+            latitude,
+          },
+        });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: "Resource not found. Could not find resource by orphanageId",
+      });
+    });
+
+    it("Should return 400 when sending request body without orphanage", async () => {
+      const response = await request(app).patch("/api/orphanages/123").send({});
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: "Missing param: orphanage",
+      });
+    });
+
+    it("Should return 400 when request.body.orphanage is not an object", async () => {
+      const response = await request(app).patch("/api/orphanages/123").send({
+        orphanage: null,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: "Invalid param: orphanage",
+      });
+    });
+
+    it("Should return 400 when orphanageId is invalid", async () => {
+      const invalidId = "123";
+
+      const response = await request(app)
+        .patch(`/api/orphanages/${invalidId}`)
+        .send({
+          orphanage: { name: "123" },
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: "Invalid param: orphanageId",
+      });
+    });
+
+    it("Should return 200 and updated orphanage", async () => {
+      const { orphanagesDb } = await seedOrphanages(1);
+
+      const { id } = orphanagesDb[0];
+
+      const newOrphanageData = {
+        name: "my_new_name",
+        description: "my_new_description",
+      };
+
+      const response = await request(app)
+        .patch(`/api/orphanages/${id as string}`)
+        .send({ orphanage: newOrphanageData });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toStrictEqual({
+        orphanage: {
+          ...orphanagesDb[0],
+          ...newOrphanageData,
+        },
+      });
+    });
+  });
 });
