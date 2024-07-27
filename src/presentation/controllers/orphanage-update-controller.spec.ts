@@ -6,9 +6,10 @@ import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadById, OrphanageUpdate } from "@/domain/usecases";
 
 import {
-  MissingParamError,
-  NotFoundError,
   ServerError,
+  NotFoundError,
+  MissingParamError,
+  InvalidParamError,
 } from "@/presentation/errors";
 import { badRequest } from "@/presentation/helpers";
 import type { Validation } from "@/presentation/protocols";
@@ -169,6 +170,39 @@ describe("OrphanageUpdateController", () => {
     });
 
     expect(httpResponse).toEqual(badRequest(validationSpy.error));
+  });
+
+  it("Should return 400 if orphanage is not a valid object", async () => {
+    const { sut } = makeSut();
+
+    const cases: any[] = [null, "123", 123, true];
+
+    const orphanageId = new ObjectId().toString();
+
+    for (const value of cases) {
+      const httpResponse = await sut.handle({
+        orphanageId,
+        orphanage: value,
+      });
+
+      expect(httpResponse).toEqual(
+        badRequest(new InvalidParamError("orphanage"))
+      );
+    }
+  });
+
+  it("Should return 400 if orphanageId is invalid", async () => {
+    const { sut } = makeSut();
+
+    const invalidId = "123";
+
+    const httpResponse = await sut.handle({
+      orphanageId: invalidId,
+      orphanage: { name: faker.lorem.word({ length: 5 }) },
+    });
+
+    expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toEqual(new InvalidParamError("orphanageId"));
   });
 
   it("Should return 200 and updated orphanage when valid data is provided", async () => {
