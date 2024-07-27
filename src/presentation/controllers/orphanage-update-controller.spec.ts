@@ -11,7 +11,7 @@ import {
   MissingParamError,
   InvalidParamError,
 } from "@/presentation/errors";
-import { badRequest } from "@/presentation/helpers";
+import { badRequest, notFound } from "@/presentation/helpers";
 import type { Validation } from "@/presentation/protocols";
 import { OrphanageUpdateController } from "@/presentation/controllers";
 
@@ -92,7 +92,7 @@ describe("OrphanageUpdateController", () => {
     expect(orphanageLoadByIdSpy).toHaveBeenCalledWith(request.orphanageId);
   });
 
-  it("Should return 400 when OrphanageLoadById can not find a matching orphanage", async () => {
+  it("Should return notFound when OrphanageLoadById can not find a matching orphanage", async () => {
     const { sut, orphanageLoadById } = makeSut();
 
     orphanageLoadById.orphanagesMocks = [];
@@ -102,11 +102,10 @@ describe("OrphanageUpdateController", () => {
       orphanage: { name: faker.lorem.word() },
     };
 
-    const response = await sut.handle(request);
+    const httpResponse = await sut.handle(request);
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body).toEqual(
-      new NotFoundError({ paramName: "orphanageId" })
+    expect(httpResponse).toEqual(
+      notFound(new NotFoundError({ paramName: "orphanageId" }))
     );
   });
 
@@ -139,10 +138,10 @@ describe("OrphanageUpdateController", () => {
       orphanage: { name: faker.lorem.word() },
     };
 
-    const response = await sut.handle(request);
+    const httpResponse = await sut.handle(request);
 
-    expect(response.body).toEqual(new ServerError());
-    expect(response.statusCode).toBe(500);
+    expect(httpResponse.body).toEqual(new ServerError());
+    expect(httpResponse.statusCode).toBe(500);
   });
 
   it("Should call Validation with correct value", async () => {
@@ -215,10 +214,10 @@ describe("OrphanageUpdateController", () => {
       orphanage: orphanageNewData,
     };
 
-    const response = await sut.handle(request);
+    const httpResponse = await sut.handle(request);
 
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toStrictEqual({
+    expect(httpResponse.statusCode).toBe(200);
+    expect(httpResponse.body).toStrictEqual({
       orphanage: {
         ...orphanageNewData,
         id: orphanagesMocked[0].id,

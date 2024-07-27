@@ -27,6 +27,6 @@ export const badRequest = (error: Error): HttpResponse => ({
 });
 
 export const notFound = (error: NotFoundError): HttpResponse => ({
-  statusCode: 400,
+  statusCode: 404,
   body: error,
 });
