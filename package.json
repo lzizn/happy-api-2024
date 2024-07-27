@@ -22,7 +22,8 @@
     "express": "^4.19.2",
     "module-alias": "^2.2.3",
     "mongodb": "^6.8.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
