@@ -162,9 +162,7 @@ describe("OrphanageUpdateController", () => {
 
     const httpResponse = await sut.handle(request);
 
-    expect(httpResponse).toEqual(
-      notFound(new NotFoundError({ paramName: "orphanageId" }))
-    );
+    expect(httpResponse).toEqual(notFound(new NotFoundError("orphanageId")));
   });
   it("Should throw if orphanageId is invalid", async () => {
     const { sut, orphanageLoadByIdSpy } = makeSut();

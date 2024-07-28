@@ -121,7 +121,7 @@ describe("LogController Decorator", () => {
   it("Should return 404 not found when controller throws NotFoundError", async () => {
     const { sut, anyController } = makeSut();
 
-    const error = new NotFoundError({ paramName: "any_id " });
+    const error = new NotFoundError("any_id");
     jest.spyOn(anyController, "handle").mockImplementationOnce(async () => {
       throw error;
     });

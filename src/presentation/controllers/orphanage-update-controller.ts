@@ -29,7 +29,7 @@ export class OrphanageUpdateController implements Controller {
     );
 
     if (existingOrphanage === null) {
-      return notFound(new NotFoundError({ paramName: "orphanageId" }));
+      return notFound(new NotFoundError("orphanageId"));
     }
 
     const orphanageUpdated = await this.orphanagesUpdate.update({

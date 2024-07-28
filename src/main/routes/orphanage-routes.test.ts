@@ -171,7 +171,7 @@ describe("Orphanages Routes", () => {
       expect(response.statusCode).toBe(404);
       expect(response.body).toEqual({
         error: NotFoundError.name,
-        message: new NotFoundError({ paramName: "orphanageId" }).message,
+        message: new NotFoundError("orphanageId").message,
       });
     });
 
