@@ -1,8 +1,11 @@
-import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
+import type { OrphanageModel } from "@/domain/models";
 
 import { DbOrphanageCreate } from "@/data/usecases";
-import { OrphanageCreateRepository, SchemaValidator } from "@/data/protocols";
+import type {
+  SchemaValidator,
+  OrphanageCreateRepository,
+} from "@/data/protocols/db";
 
 import { ValidationError } from "@/presentation/errors";
 

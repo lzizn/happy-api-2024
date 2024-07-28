@@ -4,7 +4,7 @@ import { mockOrphanageModel } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageCreate } from "@/domain/usecases";
 
-import type { SchemaValidator } from "@/data/protocols";
+import type { SchemaValidator } from "@/data/protocols/db";
 
 import type { Validation } from "@/presentation/protocols";
 import { badRequest, created } from "@/presentation/helpers";

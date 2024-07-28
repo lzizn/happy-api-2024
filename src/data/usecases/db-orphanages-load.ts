@@ -1,5 +1,5 @@
 import { OrphanagesLoad } from "@/domain/usecases";
-import { OrphanagesLoadRepository } from "@/data/protocols";
+import { OrphanagesLoadRepository } from "@/data/protocols/db";
 
 export class DbOrphanagesLoad implements OrphanagesLoad {
   constructor(

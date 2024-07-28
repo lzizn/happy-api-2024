@@ -4,7 +4,7 @@ import type { OrphanageCreate } from "@/domain/usecases";
 import type {
   SchemaValidator,
   OrphanageCreateRepository,
-} from "@/data/protocols";
+} from "@/data/protocols/db";
 
 export class DbOrphanageCreate implements OrphanageCreate {
   constructor(

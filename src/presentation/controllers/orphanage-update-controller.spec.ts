@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { ObjectId } from "mongodb";
 
-import { SchemaValidator } from "@/data/protocols";
+import { SchemaValidator } from "@/data/protocols/db";
 
 import { mockOrphanageModels } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";

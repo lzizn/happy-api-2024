@@ -1,9 +1,9 @@
-import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
+import type { OrphanageModel } from "@/domain/models";
 
 import { DbOrphanageLoadById } from "@/data/usecases";
-import { OrphanageLoadByIdRepository } from "@/data/protocols";
 import { ValidationError } from "@/presentation/errors";
+import type { OrphanageLoadByIdRepository } from "@/data/protocols/db";
 
 const makeOrphanageLoadByIdRepositorySpy = () => {
   class OrphanageLoadByIdRepositorySpy implements OrphanageLoadByIdRepository {

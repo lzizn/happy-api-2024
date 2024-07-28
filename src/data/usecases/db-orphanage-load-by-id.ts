@@ -1,6 +1,6 @@
 import type { OrphanageLoadById } from "@/domain/usecases";
 
-import type { OrphanageLoadByIdRepository } from "@/data/protocols";
+import type { OrphanageLoadByIdRepository } from "@/data/protocols/db";
 
 import { ValidationError } from "@/presentation/errors";
 

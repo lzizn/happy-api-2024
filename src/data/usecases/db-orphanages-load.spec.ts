@@ -1,5 +1,5 @@
 import { DbOrphanagesLoad } from "@/data/usecases";
-import { OrphanagesLoadRepository } from "@/data/protocols";
+import { OrphanagesLoadRepository } from "@/data/protocols/db";
 
 import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";

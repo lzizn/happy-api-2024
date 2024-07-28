@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 
 import { LogControllerDecorator } from "@/main/decorators";
 
-import type { LogErrorRepository } from "@/data/protocols";
+import type { LogErrorRepository } from "@/data/protocols/db";
 
 import {
   NotFoundError,
