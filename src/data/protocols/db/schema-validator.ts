@@ -5,7 +5,7 @@ type GenericError = {
 };
 
 export type SchemaValidator<T> = {
-  validate(object: T | Partial<T>): SchemaValidator.Result<T>;
+  validate(input: T | Partial<T>): SchemaValidator.Result<T>;
 };
 export namespace SchemaValidator {
   export type Result<T> =
