@@ -1,7 +1,7 @@
 import { File, FileUploaded } from "@/domain/models";
 
 export interface FileUpload {
-  upload: (files: File[]) => Promise<FileUploaded[]>;
+  upload: (files: File[]) => FileUpload.Result;
 }
 
 export namespace FileUpload {
