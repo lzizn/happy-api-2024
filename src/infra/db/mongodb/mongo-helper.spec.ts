@@ -1,5 +1,5 @@
 import { Collection, MongoClient } from "mongodb";
-import { MongoHelper } from "./mongo-helper";
+import { getOptions, MongoHelper } from "@/infra/db";
 
 describe("MongoHelper", () => {
   jest.setTimeout(30000);
@@ -34,5 +34,20 @@ describe("MongoHelper", () => {
     const collection = MongoHelper.getCollection("users");
 
     expect(collection).toBeInstanceOf(Collection);
+  });
+
+  it("Should have different options based on environment", () => {
+    const options_test = getOptions("test");
+
+    expect(options_test).toEqual({});
+
+    const options_dev = getOptions("development");
+    expect(options_dev).toEqual({
+      serverApi: {
+        deprecationErrors: true,
+        strict: true,
+        version: "1",
+      },
+    });
   });
 });
