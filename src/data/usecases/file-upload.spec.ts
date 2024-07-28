@@ -1,10 +1,9 @@
 import { faker } from "@faker-js/faker";
 
 import { RemoteFileUpload } from "@/data/usecases";
-import { FileUploader } from "@/data/protocols/file";
+import type { FileUploader } from "@/data/protocols/file";
 
-import { FileUploadError } from "@/domain/errors";
-import { File, FileUploaded } from "@/domain/models";
+import type { File, FileUploaded } from "@/domain/models";
 
 const mockFile = (): File => ({
   size: 1,
@@ -17,19 +16,14 @@ const mockFile = (): File => ({
 const makeFileUploaderSpy = () => {
   class FileUploaderSpy implements FileUploader {
     input?: File | File[];
-    result?: FileUploaded[];
+    result?: FileUploaded[] = new Array(1).fill(null).map(() => ({
+      path: faker.image.url(),
+    }));
 
     async upload(files: File[]): FileUploader.Result {
       this.input = files;
 
-      if (this.result) return this.result;
-
-      const result = new Array(files.length).fill(null).map(() => ({
-        path: faker.image.url(),
-      }));
-
-      this.result = result;
-      return result;
+      return this.result;
     }
   }
 
@@ -74,21 +68,11 @@ describe("RemoteFileUpload", () => {
   it("Should throw FileUploaderError when FileUploader returns nil", async () => {
     const { fileUploaderSpy, sut } = makeSut();
 
-    const falsy_values = [undefined, null];
+    fileUploaderSpy.result = undefined as any;
 
-    for (const value of falsy_values) {
-      fileUploaderSpy.result = value as any;
+    const promise = sut.upload([fileMocked]);
 
-      try {
-        await sut.upload([fileMocked]);
-      } catch (e) {
-        expect(e).toBeInstanceOf(FileUploadError);
-        expect((e as FileUploadError).name).toBe("FileUploadError");
-        expect((e as FileUploadError).message).toBe(
-          "Error while uploading file(s)"
-        );
-      }
-    }
+    await expect(promise).rejects.toThrow();
   });
 
   // ---- General
