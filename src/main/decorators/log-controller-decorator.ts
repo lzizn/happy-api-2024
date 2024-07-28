@@ -33,17 +33,13 @@ export class LogControllerDecorator implements Controller {
         return notFound(error);
       }
 
-      if (error instanceof Error) {
-        await this.logErrorRepository.logError(
-          `message:${error.message}; stack:${error?.stack}`
-        );
+      const _error = error as unknown as Error;
 
-        return serverError(error);
-      }
-
-      return serverError(
-        new Error("Unknown error caught in LogControllerDecorator")
+      await this.logErrorRepository.logError(
+        `message:${_error.message}; stack:${_error?.stack}`
       );
+
+      return serverError(_error);
     }
   }
 }
