@@ -7,8 +7,10 @@ import {
   MongoClientOptions,
 } from "mongodb";
 
-const getOptions = (): MongoClientOptions => {
-  if (process.env.NODE_ENV === "test") return {};
+export const getOptions = (
+  env: string | undefined = process.env.NODE_ENV
+): MongoClientOptions => {
+  if (env === "test") return {};
 
   return {
     serverApi: {
