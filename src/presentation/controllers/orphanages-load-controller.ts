@@ -1,19 +1,15 @@
 import type { OrphanagesLoad } from "@/domain/usecases";
 
-import { ok, noContent, serverError } from "@/presentation/helpers";
+import { ok, noContent } from "@/presentation/helpers";
 import type { Controller, HttpResponse } from "@/presentation/protocols";
 
 export class OrphanagesLoadController implements Controller {
   constructor(private readonly orphanagesLoad: OrphanagesLoad) {}
 
   async handle(): Promise<HttpResponse> {
-    try {
-      const orphanages = await this.orphanagesLoad.load();
+    const orphanages = await this.orphanagesLoad.load();
 
-      return orphanages.length ? ok(orphanages) : noContent();
-    } catch (e) {
-      return serverError(e as Error);
-    }
+    return orphanages.length ? ok(orphanages) : noContent();
   }
 }
 

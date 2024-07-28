@@ -1,5 +1,7 @@
+import { mockOrphanageModels } from "@/domain/mocks";
 import type { OrphanagesLoad } from "@/domain/usecases";
-import { ServerError } from "@/presentation/errors";
+
+import { noContent, ok } from "@/presentation/helpers";
 import { OrphanagesLoadController } from "@/presentation/controllers";
 
 const makeOrphanagesLoad = () => {
@@ -23,6 +25,7 @@ const makeSut = () => {
 };
 
 describe("OrphanagesLoadController", () => {
+  // ---- OrphanagesLoad
   it("Should call OrphanagesLoad", async () => {
     const { sut, orphanagesLoad } = makeSut();
 
@@ -31,79 +34,52 @@ describe("OrphanagesLoadController", () => {
     await sut.handle();
     expect(orphanagesLoadSpy).toHaveBeenCalled();
   });
-
-  it("Should return 500 when OrphanagesLoad throws", async () => {
+  it("Should throw when OrphanagesLoad throws", async () => {
     const { sut, orphanagesLoad } = makeSut();
 
+    const error = new Error("Caused by test");
+
     jest.spyOn(orphanagesLoad, "load").mockImplementation(async () => {
-      throw new Error("Caused by test");
+      throw error;
     });
 
-    const response = await sut.handle();
-    expect(response.statusCode).toBe(500);
-    expect(response.body).toEqual(new ServerError());
+    try {
+      await sut.handle();
+    } catch (e) {
+      expect(e).toEqual(error);
+    }
   });
-
   it("Should return results from OrphanagesLoad", async () => {
     const { sut, orphanagesLoad } = makeSut();
 
-    const mockedOrphanages = [
-      {
-        id: "1",
-        description: "aa",
-        name: "Maria's Heart",
-        open_on_weekends: true,
-        opening_hours: "Mon-Sun 7am-7pm",
-        latitude: -20,
-        longitude: -40,
-        instructions: "None",
-      },
-    ];
-
+    const orphanagesMocked = mockOrphanageModels(2);
     const orphanagesLoadSpy = jest.spyOn(orphanagesLoad, "load");
-    orphanagesLoadSpy.mockImplementation(async () => mockedOrphanages);
+    orphanagesLoadSpy.mockImplementation(async () => orphanagesMocked);
 
     const response = await sut.handle();
 
     expect(orphanagesLoadSpy).toHaveBeenCalled();
-    expect(response.body).toStrictEqual(mockedOrphanages);
+    expect(response.body).toStrictEqual(orphanagesMocked);
   });
 
+  // ---- General
   it("Should return 200 when there is at least one orphanage", async () => {
     const { sut, orphanagesLoad } = makeSut();
 
-    const mockedOrphanages = [
-      {
-        id: "1",
-        description: "aa",
-        name: "Maria's Heart",
-        open_on_weekends: true,
-        opening_hours: "Mon-Sun 7am-7pm",
-        latitude: -20,
-        longitude: -40,
-        instructions: "None",
-      },
-    ];
-
+    const orphanagesMocked = mockOrphanageModels(2);
     jest
       .spyOn(orphanagesLoad, "load")
-      .mockImplementation(async () => mockedOrphanages);
+      .mockImplementation(async () => orphanagesMocked);
 
     const response = await sut.handle();
 
-    expect(response.statusCode).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBe(1);
+    expect(response).toEqual(ok(orphanagesMocked));
   });
-
   it("Should return 204 and null if response from OrphanagesLoad is empty", async () => {
-    const { sut, orphanagesLoad } = makeSut();
-
-    jest.spyOn(orphanagesLoad, "load").mockImplementation(async () => []);
+    const { sut } = makeSut();
 
     const httpResponse = await sut.handle();
 
-    expect(httpResponse.statusCode).toBe(204);
-    expect(httpResponse.body).toBe(null);
+    expect(httpResponse).toEqual(noContent());
   });
 });

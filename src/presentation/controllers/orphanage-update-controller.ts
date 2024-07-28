@@ -6,8 +6,8 @@ import type {
   Validation,
   HttpResponse,
 } from "@/presentation/protocols";
-import { InvalidParamError, NotFoundError } from "@/presentation/errors";
-import { ok, notFound, serverError, badRequest } from "@/presentation/helpers";
+import { NotFoundError } from "@/presentation/errors";
+import { ok, notFound, badRequest } from "@/presentation/helpers";
 
 export class OrphanageUpdateController implements Controller {
   constructor(
@@ -19,35 +19,25 @@ export class OrphanageUpdateController implements Controller {
   async handle(
     request: OrphanagesUpdateController.Request
   ): Promise<HttpResponse> {
-    try {
-      const error = this.validation.validate(request);
-      if (error) return badRequest(error);
+    const error = this.validation.validate(request);
+    if (error) return badRequest(error);
 
-      const { orphanageId, ...orphanage } = request;
+    const { orphanageId, ...orphanage } = request;
 
-      if (typeof orphanageId !== "string" || orphanageId.length !== 24) {
-        return badRequest(new InvalidParamError("orphanageId"));
-      }
+    const existingOrphanage = await this.orphanagesLoadById.loadById(
+      orphanageId
+    );
 
-      const existingOrphanage = await this.orphanagesLoadById.loadById(
-        orphanageId
-      );
-
-      if (existingOrphanage === null) {
-        return notFound(new NotFoundError({ paramName: "orphanageId" }));
-      }
-
-      if ("_id" in orphanage) delete orphanage._id;
-
-      const orphanageUpdated = await this.orphanagesUpdate.update({
-        ...orphanage,
-        id: orphanageId,
-      });
-
-      return ok(orphanageUpdated);
-    } catch (e) {
-      return serverError(e as Error);
+    if (existingOrphanage === null) {
+      return notFound(new NotFoundError({ paramName: "orphanageId" }));
     }
+
+    const orphanageUpdated = await this.orphanagesUpdate.update({
+      ...orphanage,
+      id: orphanageId,
+    });
+
+    return ok(orphanageUpdated);
   }
 }
 

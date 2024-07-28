@@ -1,117 +1,111 @@
-import { ObjectId } from "mongodb";
-
+import { mockOrphanageModels } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadById } from "@/domain/usecases";
 
-import {
-  ServerError,
-  InvalidParamError,
-  MissingParamError,
-} from "@/presentation/errors";
+import { noContent, ok } from "@/presentation/helpers";
+import { ValidationError } from "@/presentation/errors";
 import { OrphanageLoadByIdController } from "@/presentation/controllers";
 
-const makeOrphanageLoadById = () => {
-  class OrphanageLoadByIdStub implements OrphanageLoadById {
-    async loadById(): Promise<OrphanageLoadById.Result> {
-      return {} as OrphanageLoadById.Result;
+const makeOrphanageLoadByIdSpy = () => {
+  class OrphanageLoadByIdSpy implements OrphanageLoadById {
+    orphanagesMocked: OrphanageModel[] = [];
+    result?: OrphanageLoadById.Result;
+    error?: Error;
+
+    async loadById(id: string): Promise<OrphanageLoadById.Result> {
+      if (this.error) throw this.error;
+
+      const match = this.orphanagesMocked.find((x) => x.id === id);
+
+      const result = match ?? null;
+      this.result = result;
+      return result;
     }
   }
 
-  return new OrphanageLoadByIdStub();
+  return new OrphanageLoadByIdSpy();
 };
 
 const makeSut = () => {
-  const orphanageLoadById = makeOrphanageLoadById();
-  const sut = new OrphanageLoadByIdController(orphanageLoadById);
-  const id = new ObjectId().toString();
+  const id = "11a1a11d11cb1a11111fb111";
+
+  const orphanageLoadByIdSpy = makeOrphanageLoadByIdSpy();
+  const sut = new OrphanageLoadByIdController(orphanageLoadByIdSpy);
 
   return {
     id,
     sut,
-    orphanageLoadById,
+    orphanageLoadByIdSpy,
   } as const;
 };
 
 describe("OrphanageLoadByIdController", () => {
+  // ---- OrphanageLoadById
   it("Should call OrphanageLoadById", async () => {
-    const { sut, id, orphanageLoadById } = makeSut();
+    const { sut, id, orphanageLoadByIdSpy } = makeSut();
 
-    const orphanageLoadByIdSpy = jest.spyOn(orphanageLoadById, "loadById");
+    const orphanageLoadByIdSpySpy = jest.spyOn(
+      orphanageLoadByIdSpy,
+      "loadById"
+    );
 
     await sut.handle({ orphanageId: id });
-    expect(orphanageLoadByIdSpy).toHaveBeenCalled();
+    expect(orphanageLoadByIdSpySpy).toHaveBeenCalled();
+  });
+  it("Should throw when OrphanageLoadById throws", async () => {
+    const { sut, id, orphanageLoadByIdSpy } = makeSut();
+
+    const error = new Error("Caused by test");
+
+    orphanageLoadByIdSpy.error = error;
+
+    try {
+      await sut.handle({ orphanageId: id });
+    } catch (e) {
+      expect(e).toEqual(error);
+    }
   });
 
-  it("Should return 400 with InvalidParamError when orphanageId is null", async () => {
-    const { sut } = makeSut();
+  // ---- General
+  it("Should throw when orphanageId is null", async () => {
+    const { sut, orphanageLoadByIdSpy } = makeSut();
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const response = await sut.handle({ orphanageId: null });
+    const validationError = new ValidationError([
+      {
+        error: ["Caused by test"],
+      },
+    ]);
 
-    expect(response.statusCode).toBe(400);
-    expect(response.body).toEqual(new InvalidParamError("orphanageId"));
+    orphanageLoadByIdSpy.error = validationError;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await sut.handle({ orphanageId: null });
+    } catch (e) {
+      expect(e).toEqual(validationError);
+    }
   });
-
-  it("Should return 400 with MissingParamError when orphanageId is undefined", async () => {
-    const { sut } = makeSut();
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const response = await sut.handle({ orphanageId: undefined });
-
-    expect(response.statusCode).toBe(400);
-    expect(response.body).toEqual(new MissingParamError("orphanageId"));
-  });
-
-  it("Should return 500 when OrphanageLoadById throws", async () => {
-    const { sut, id, orphanageLoadById } = makeSut();
-
-    jest.spyOn(orphanageLoadById, "loadById").mockImplementation(async () => {
-      throw new Error("Caused by test");
-    });
-
-    const response = await sut.handle({ orphanageId: id });
-
-    expect(response.statusCode).toBe(500);
-    expect(response.body).toEqual(new ServerError());
-  });
-
   it("Should return result from OrphanageLoadById", async () => {
-    const { sut, orphanageLoadById } = makeSut();
+    const { sut, orphanageLoadByIdSpy } = makeSut();
 
-    const mockedOrphanage: OrphanageModel = {
-      id: new ObjectId().toString(),
-      description: "aa",
-      name: "Maria's Heart",
-      open_on_weekends: true,
-      opening_hours: "Mon-Sun 7am-7pm",
-      latitude: -20,
-      longitude: -40,
-      instructions: "None",
-    };
+    const orphanagesMocked = mockOrphanageModels(5);
 
-    const orphanageLoadByIdSpy = jest.spyOn(orphanageLoadById, "loadById");
-    orphanageLoadByIdSpy.mockImplementation(async () => mockedOrphanage);
+    orphanageLoadByIdSpy.orphanagesMocked = orphanagesMocked;
 
-    const response = await sut.handle({
-      orphanageId: mockedOrphanage.id as string,
+    const httpResponse = await sut.handle({
+      orphanageId: orphanagesMocked[0].id as string,
     });
 
-    expect(orphanageLoadByIdSpy).toHaveBeenCalled();
-    expect(response.body).toStrictEqual(mockedOrphanage);
+    expect(httpResponse).toEqual(ok(orphanageLoadByIdSpy.result));
   });
-
   it("Should return 204 and null if response from OrphanageLoadById is null", async () => {
-    const { sut, id, orphanageLoadById } = makeSut();
+    const { sut, id, orphanageLoadByIdSpy } = makeSut();
 
-    jest
-      .spyOn(orphanageLoadById, "loadById")
-      .mockImplementation(async () => null);
+    orphanageLoadByIdSpy.orphanagesMocked = [];
 
     const httpResponse = await sut.handle({ orphanageId: id });
 
-    expect(httpResponse.statusCode).toBe(204);
-    expect(httpResponse.body).toBe(null);
+    expect(httpResponse).toEqual(noContent());
   });
 });

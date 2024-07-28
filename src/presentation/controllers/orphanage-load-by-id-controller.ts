@@ -1,8 +1,7 @@
 import type { OrphanageLoadById } from "@/domain/usecases";
 
+import { ok, noContent } from "@/presentation/helpers";
 import type { Controller, HttpResponse } from "@/presentation/protocols";
-import { InvalidParamError, MissingParamError } from "@/presentation/errors";
-import { ok, serverError, badRequest, noContent } from "@/presentation/helpers";
 
 export class OrphanageLoadByIdController implements Controller {
   constructor(private readonly orphanagesLoad: OrphanageLoadById) {}
@@ -10,23 +9,11 @@ export class OrphanageLoadByIdController implements Controller {
   async handle(
     request: OrphanageLoadByIdController.Request
   ): Promise<HttpResponse> {
-    try {
-      const { orphanageId } = request;
+    const { orphanageId } = request;
 
-      if ("undefined" === orphanageId + "") {
-        return badRequest(new MissingParamError("orphanageId"));
-      }
+    const orphanage = await this.orphanagesLoad.loadById(orphanageId);
 
-      if (typeof orphanageId !== "string" || orphanageId.length !== 24) {
-        return badRequest(new InvalidParamError("orphanageId"));
-      }
-
-      const orphanage = await this.orphanagesLoad.loadById(orphanageId);
-
-      return orphanage ? ok(orphanage) : noContent();
-    } catch (e) {
-      return serverError(e as Error);
-    }
+    return orphanage ? ok(orphanage) : noContent();
   }
 }
 

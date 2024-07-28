@@ -6,7 +6,7 @@ import type {
   Validation,
   HttpResponse,
 } from "@/presentation/protocols";
-import { badRequest, created, serverError } from "@/presentation/helpers";
+import { badRequest, created } from "@/presentation/helpers";
 
 export class OrphanageCreateController implements Controller {
   constructor(
@@ -15,25 +15,18 @@ export class OrphanageCreateController implements Controller {
   ) {}
 
   async handle(
-    request: OrphanagesCreateController.Request
+    orphanage: OrphanagesCreateController.Request
   ): Promise<HttpResponse> {
-    try {
-      const { ...orphanage } = request;
+    const error = this.validation.validate(orphanage);
+    if (error) return badRequest(error);
 
-      const error = this.validation.validate(orphanage);
-      if (error) return badRequest(error);
+    if ("id" in orphanage) delete orphanage.id;
 
-      if ("_id" in orphanage) delete orphanage._id;
-      if ("id" in orphanage) delete orphanage.id;
+    const orphanageUpdated = await this.orphanagesCreate.create(
+      orphanage as OrphanageModel
+    );
 
-      const orphanageUpdated = await this.orphanagesCreate.create(
-        orphanage as OrphanageModel
-      );
-
-      return created(orphanageUpdated);
-    } catch (e) {
-      return serverError(e as Error);
-    }
+    return created(orphanageUpdated);
   }
 }
 

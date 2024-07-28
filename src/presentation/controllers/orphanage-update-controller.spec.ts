@@ -1,48 +1,78 @@
 import { faker } from "@faker-js/faker";
 import { ObjectId } from "mongodb";
 
+import { SchemaValidator } from "@/data/protocols";
+
 import { mockOrphanageModels } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
 import type { OrphanageLoadById, OrphanageUpdate } from "@/domain/usecases";
 
 import {
-  ServerError,
   NotFoundError,
+  ValidationError,
   MissingParamError,
-  InvalidParamError,
 } from "@/presentation/errors";
-import { badRequest, notFound } from "@/presentation/helpers";
 import type { Validation } from "@/presentation/protocols";
+import { ok, badRequest, notFound } from "@/presentation/helpers";
 import { OrphanageUpdateController } from "@/presentation/controllers";
 
-const makeOrphanageUpdate = () => {
-  class OrphanageUpdateStub implements OrphanageUpdate {
+const makeOrphanageUpdateSchemaValidatorSpy = () => {
+  class OrphanageUpdateSchemaValidatorSpy
+    implements SchemaValidator<OrphanageModel>
+  {
+    input: OrphanageModel | Partial<OrphanageModel> = {};
+    validate(
+      orphanage: OrphanageModel | Partial<OrphanageModel>
+    ): SchemaValidator.Result<OrphanageModel> {
+      this.input = orphanage;
+      return;
+    }
+  }
+
+  return new OrphanageUpdateSchemaValidatorSpy();
+};
+
+const makeOrphanageUpdateSpy = (
+  schemaValidator: SchemaValidator<OrphanageModel>
+) => {
+  class OrphanageUpdateSpy implements OrphanageUpdate {
+    input: Partial<OrphanageModel> = {};
+
     async update(
       orphanage: Partial<OrphanageModel>
     ): Promise<OrphanageUpdate.Result> {
+      this.input = orphanage;
+
+      const error = schemaValidator.validate(orphanage);
+
+      if (error) throw error;
+
       return orphanage as OrphanageUpdate.Result;
     }
   }
 
-  return new OrphanageUpdateStub();
+  return new OrphanageUpdateSpy();
 };
 
-const makeOrphanageLoadById = (orphanagesMocks: OrphanageModel[]) => {
-  class OrphanageLoadByIdStub implements OrphanageLoadById {
+const makeOrphanageLoadByIdSpy = (orphanagesMocks: OrphanageModel[]) => {
+  class OrphanageLoadByIdSpy implements OrphanageLoadById {
     orphanagesMocks: OrphanageModel[] = orphanagesMocks;
+    input: string = "";
 
     async loadById(orphanageId: string): Promise<OrphanageLoadById.Result> {
+      this.input = orphanageId;
+
       const match = this.orphanagesMocks.find((x) => x.id === orphanageId);
 
       return match ?? null;
     }
   }
 
-  return new OrphanageLoadByIdStub();
+  return new OrphanageLoadByIdSpy();
 };
 
-const makeValidationSpy = () => {
-  class ValidationSpy implements Validation {
+const makeRequestValidationSpy = () => {
+  class RequestValidationSpy implements Validation {
     error: Error | undefined;
     input: any;
 
@@ -52,54 +82,82 @@ const makeValidationSpy = () => {
     }
   }
 
-  return new ValidationSpy();
+  return new RequestValidationSpy();
 };
 
 const makeSut = () => {
   const orphanagesMocked = mockOrphanageModels();
 
-  const orphanageUpdate = makeOrphanageUpdate();
-  const orphanageLoadById = makeOrphanageLoadById(orphanagesMocked);
-  const validationSpy = makeValidationSpy();
+  const schemaValidatorSpy = makeOrphanageUpdateSchemaValidatorSpy();
+  const orphanageUpdateSpy = makeOrphanageUpdateSpy(schemaValidatorSpy);
+  const orphanageLoadByIdSpy = makeOrphanageLoadByIdSpy(orphanagesMocked);
+  const requestValidationSpy = makeRequestValidationSpy();
+
   const sut = new OrphanageUpdateController(
-    orphanageLoadById,
-    orphanageUpdate,
-    validationSpy
+    orphanageLoadByIdSpy,
+    orphanageUpdateSpy,
+    requestValidationSpy
   );
 
   return {
     sut,
-    validationSpy,
-    orphanageUpdate,
     orphanagesMocked,
-    orphanageLoadById,
+    schemaValidatorSpy,
+    orphanageUpdateSpy,
+    orphanageLoadByIdSpy,
+    requestValidationSpy,
   } as const;
 };
 
 describe("OrphanageUpdateController", () => {
-  it("Should call OrphanageLoadById with correct values", async () => {
-    const { sut, orphanageLoadById } = makeSut();
+  // ---- RequestValidation
+  it("Should call RequestValidation with correct value", async () => {
+    const { sut, requestValidationSpy } = makeSut();
 
-    const orphanageLoadByIdSpy = jest.spyOn(orphanageLoadById, "loadById");
+    const request = {
+      orphanageId: "123",
+      name: faker.lorem.word(),
+    };
+    await sut.handle(request);
+
+    expect(requestValidationSpy.input).toEqual(request);
+  });
+  it("Should return 400 if RequestValidation returns an error", async () => {
+    const { sut, requestValidationSpy } = makeSut();
+
+    requestValidationSpy.error = new MissingParamError("orphanageId");
+
+    const httpResponse = await sut.handle({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      orphanageId: undefined,
+      name: faker.lorem.word({ length: 5 }),
+    });
+
+    expect(httpResponse).toEqual(badRequest(requestValidationSpy.error));
+  });
+
+  // ---- OrphanageLoadById
+  it("Should call OrphanageLoadById with correct values", async () => {
+    const { sut, orphanageLoadByIdSpy } = makeSut();
 
     const request = {
       orphanageId: new ObjectId().toString(),
-      orphanage: { name: faker.lorem.word() },
+      name: faker.lorem.word(),
     };
 
     await sut.handle(request);
 
-    expect(orphanageLoadByIdSpy).toHaveBeenCalledWith(request.orphanageId);
+    expect(orphanageLoadByIdSpy.input).toEqual(request.orphanageId);
   });
-
   it("Should return notFound when OrphanageLoadById can not find a matching orphanage", async () => {
-    const { sut, orphanageLoadById } = makeSut();
+    const { sut, orphanageLoadByIdSpy } = makeSut();
 
-    orphanageLoadById.orphanagesMocks = [];
+    orphanageLoadByIdSpy.orphanagesMocks = [];
 
     const request = {
       orphanageId: new ObjectId().toString(),
-      orphanage: { name: faker.lorem.word() },
+      name: faker.lorem.word(),
     };
 
     const httpResponse = await sut.handle(request);
@@ -108,11 +166,31 @@ describe("OrphanageUpdateController", () => {
       notFound(new NotFoundError({ paramName: "orphanageId" }))
     );
   });
+  it("Should throw if orphanageId is invalid", async () => {
+    const { sut, orphanageLoadByIdSpy } = makeSut();
 
+    const validationError = new ValidationError<{ id: string[] }>([
+      { id: ["Must be a 24-digit string that has only hex characters"] },
+    ]);
+    jest.spyOn(orphanageLoadByIdSpy, "loadById").mockImplementationOnce(() => {
+      throw validationError;
+    });
+
+    const invalidId = "123";
+
+    try {
+      await sut.handle({
+        orphanageId: invalidId,
+        name: faker.lorem.word({ length: 5 }),
+      });
+    } catch (e) {
+      expect(e).toEqual(validationError);
+    }
+  });
+
+  // ---- DbOrphanageUpdate
   it("Should call OrphanageUpdate with correct values", async () => {
-    const { sut, orphanageUpdate, orphanagesMocked } = makeSut();
-
-    const orphanageUpdateSpy = jest.spyOn(orphanageUpdate, "update");
+    const { sut, orphanageUpdateSpy, orphanagesMocked } = makeSut();
 
     const request = {
       orphanageId: orphanagesMocked[0].id as string,
@@ -121,84 +199,76 @@ describe("OrphanageUpdateController", () => {
 
     await sut.handle(request);
 
-    expect(orphanageUpdateSpy).toHaveBeenCalledWith({
+    expect(orphanageUpdateSpy.input).toEqual({
       id: orphanagesMocked[0].id,
       name: request.name,
     });
   });
+  it("Should throw when OrphanageUpdate throws", async () => {
+    const { sut, orphanageUpdateSpy, orphanagesMocked } = makeSut();
 
-  it("Should return 500 when OrphanageUpdate throws", async () => {
-    const { sut, orphanageUpdate, orphanagesMocked } = makeSut();
-
-    jest.spyOn(orphanageUpdate, "update").mockImplementation(async () => {
-      throw new Error("Caused by test");
+    const error = new Error("Caused by test");
+    jest.spyOn(orphanageUpdateSpy, "update").mockImplementation(async () => {
+      throw error;
     });
 
     const request = {
       orphanageId: orphanagesMocked[0].id as string,
-      orphanage: { name: faker.lorem.word() },
+      name: faker.lorem.word(),
     };
 
-    const httpResponse = await sut.handle(request);
-
-    expect(httpResponse.body).toEqual(new ServerError());
-    expect(httpResponse.statusCode).toBe(500);
+    try {
+      await sut.handle(request);
+    } catch (e) {
+      expect(e).toEqual(error);
+    }
   });
 
-  it("Should call Validation with correct value", async () => {
-    const { sut, validationSpy } = makeSut();
+  // ---- OrphanageSchemaValidation
+  it("Should call SchemaValidation with correct value", async () => {
+    const { sut, orphanageLoadByIdSpy, schemaValidatorSpy } = makeSut();
+
+    const orphanageMocks = mockOrphanageModels(1);
+
+    orphanageLoadByIdSpy.orphanagesMocks = orphanageMocks;
 
     const request = {
-      orphanageId: "123",
-      orphanage: { name: faker.lorem.word() },
+      orphanageId: orphanageMocks[0].id as string,
+      name: faker.lorem.word(),
     };
+
     await sut.handle(request);
 
-    expect(validationSpy.input).toEqual(request);
+    expect(schemaValidatorSpy.input).toEqual({
+      id: request.orphanageId,
+      name: request.name,
+    });
   });
+  it("Should throw when SchemaValidation returns a ValidationError", async () => {
+    const { sut, orphanageLoadByIdSpy, schemaValidatorSpy } = makeSut();
 
-  it("Should return 400 if Validation returns an error", async () => {
-    const { sut, validationSpy } = makeSut();
+    const orphanageMock = mockOrphanageModels(1);
 
-    validationSpy.error = new MissingParamError("orphanageId");
+    orphanageLoadByIdSpy.orphanagesMocks = orphanageMock;
 
-    const httpResponse = await sut.handle({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      orphanageId: undefined,
-      orphanage: { name: faker.lorem.word({ length: 5 }) },
+    const validationError = new ValidationError<{ error: string[] }>([
+      { error: ["Caused by test"] },
+    ]);
+
+    jest.spyOn(schemaValidatorSpy, "validate").mockImplementationOnce(() => {
+      throw validationError;
     });
 
-    expect(httpResponse).toEqual(badRequest(validationSpy.error));
+    try {
+      await sut.handle({
+        orphanageId: orphanageMock[0].id as string,
+      });
+    } catch (e) {
+      expect(e).toEqual(validationError);
+    }
   });
 
-  it.skip("Should return 400 if one did not provide at least one orphanage field", async () => {
-    const { sut } = makeSut();
-
-    const [{ id }] = mockOrphanageModels(1);
-
-    const httpResponse = await sut.handle({
-      orphanageId: id as string,
-    });
-
-    expect(httpResponse.statusCode).toBe(400);
-    expect(httpResponse.body).toEqual({});
-  });
-
-  it("Should return 400 if orphanageId is invalid", async () => {
-    const { sut } = makeSut();
-
-    const invalidId = "123";
-
-    const httpResponse = await sut.handle({
-      orphanageId: invalidId,
-      name: faker.lorem.word({ length: 5 }),
-    });
-
-    expect(httpResponse.statusCode).toBe(400);
-    expect(httpResponse.body).toEqual(new InvalidParamError("orphanageId"));
-  });
-
+  // ---- General
   it("Should return 200 and updated orphanage when valid data is provided", async () => {
     const { sut, orphanagesMocked } = makeSut();
 
@@ -211,10 +281,11 @@ describe("OrphanageUpdateController", () => {
 
     const httpResponse = await sut.handle(request);
 
-    expect(httpResponse.statusCode).toBe(200);
-    expect(httpResponse.body).toStrictEqual({
+    const expectedData = {
       ...orphanageNewData,
       id: orphanagesMocked[0].id,
-    });
+    };
+
+    expect(httpResponse).toEqual(ok(expectedData));
   });
 });

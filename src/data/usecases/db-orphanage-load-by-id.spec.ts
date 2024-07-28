@@ -1,75 +1,97 @@
-import { ObjectId } from "mongodb";
-
 import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
 
 import { DbOrphanageLoadById } from "@/data/usecases";
 import { OrphanageLoadByIdRepository } from "@/data/protocols";
+import { ValidationError } from "@/presentation/errors";
 
-const makeOrphanageLoadByIdRepository = () => {
-  class OrphanageLoadByIdRepositoryStub implements OrphanageLoadByIdRepository {
-    orphanagesMocked: OrphanageModel[] = mockOrphanageModels(10);
+const makeOrphanageLoadByIdRepositorySpy = () => {
+  class OrphanageLoadByIdRepositorySpy implements OrphanageLoadByIdRepository {
+    orphanagesMocked: OrphanageModel[] = [];
     result: OrphanageLoadByIdRepository.Result = null;
+    input?: string;
 
     async loadById(
-      orphanageId: string | ObjectId
+      orphanageId: string
     ): Promise<OrphanageLoadByIdRepository.Result> {
+      this.input = orphanageId;
+
       const orphanage =
         this.orphanagesMocked.find((x) => x.id === orphanageId) ?? null;
 
-      this.result = orphanage;
       return orphanage;
     }
   }
 
-  return new OrphanageLoadByIdRepositoryStub();
+  return new OrphanageLoadByIdRepositorySpy();
 };
 
 const makeSut = () => {
-  const orphanageLoadByIdRepository = makeOrphanageLoadByIdRepository();
-  const sut = new DbOrphanageLoadById(orphanageLoadByIdRepository);
+  const [{ id }] = mockOrphanageModels(1);
+  const orphanageLoadByIdRepositorySpy = makeOrphanageLoadByIdRepositorySpy();
+  const sut = new DbOrphanageLoadById(orphanageLoadByIdRepositorySpy);
 
   return {
     sut,
-    orphanageLoadByIdRepository,
+    id: id as string,
+    orphanageLoadByIdRepositorySpy,
   } as const;
 };
 
 describe("DbOrphanageLoadById", () => {
-  test("Should call OrphanageLoadById", async () => {
-    const { sut, orphanageLoadByIdRepository } = makeSut();
+  // ---- OrphanageLoadByIdRepository
+  it("Should call OrphanageLoadById", async () => {
+    const { sut, id, orphanageLoadByIdRepositorySpy } = makeSut();
 
-    const orphanageLoadByIdRepositorySpy = jest.spyOn(
-      orphanageLoadByIdRepository,
-      "loadById"
-    );
+    await sut.loadById(id);
 
-    await sut.loadById("123");
-
-    expect(orphanageLoadByIdRepositorySpy).toHaveBeenCalled();
+    expect(orphanageLoadByIdRepositorySpy.input).toBe(id);
   });
-
-  test("Should return an orphanage that matches provided id", async () => {
-    const { sut, orphanageLoadByIdRepository } = makeSut();
-
-    const mockedOrphanageId =
-      orphanageLoadByIdRepository.orphanagesMocked[0].id;
-
-    const orphanage = await sut.loadById(mockedOrphanageId as string);
-
-    expect(orphanage).toEqual(orphanageLoadByIdRepository.result);
-  });
-
-  test("Should throw if OrphanageLoadByIdRepository throws", async () => {
-    const { sut, orphanageLoadByIdRepository } = makeSut();
+  it("Should throw if OrphanageLoadByIdRepository throws", async () => {
+    const { sut, id, orphanageLoadByIdRepositorySpy } = makeSut();
 
     jest
-      .spyOn(orphanageLoadByIdRepository, "loadById")
+      .spyOn(orphanageLoadByIdRepositorySpy, "loadById")
       .mockImplementationOnce(async () => {
         throw new Error("Caused by test");
       });
 
-    const promise = sut.loadById("123");
+    const promise = sut.loadById(id);
     await expect(promise).rejects.toThrow();
+  });
+
+  // ---- General
+  it("Should throw when orphanageId is invalid", async () => {
+    const { sut } = makeSut();
+
+    const validationError = new ValidationError<{ orphanageId: string[] }>([
+      {
+        orphanageId: ["Must be a 24-digit string that has only hex characters"],
+      },
+    ]);
+    const invalidIds = [-1, null, undefined, "123", [], {}];
+
+    for (const id of invalidIds) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        sut.loadById(id);
+      } catch (e) {
+        expect(e).toEqual(validationError);
+      }
+    }
+  });
+  it("Should return an orphanage that matches provided id", async () => {
+    const { sut, orphanageLoadByIdRepositorySpy } = makeSut();
+
+    const orphanagesMocked = mockOrphanageModels(10);
+    orphanageLoadByIdRepositorySpy.orphanagesMocked = orphanagesMocked;
+
+    const orphanageTarget = orphanagesMocked[0];
+    const id = orphanageTarget.id as string;
+
+    const orphanage = await sut.loadById(id);
+
+    expect(orphanage).toEqual(orphanageTarget);
   });
 });
