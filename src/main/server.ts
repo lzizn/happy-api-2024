@@ -3,7 +3,7 @@ import { configDotenv } from "dotenv";
 
 import { getEnv } from "@/main/config/env";
 import { OrphanageModel } from "@/domain/models";
-import { MongoHelper, seedOrphanages } from "@/infra/db";
+import { MongoHelper, OrphanageSeeder } from "@/infra/db";
 
 configDotenv();
 
@@ -25,7 +25,7 @@ MongoHelper.connect(env.database_url)
     const orphanagesAmount = await orphanageCollection.countDocuments();
 
     if (orphanagesAmount === 0) {
-      await seedOrphanages(20);
+      await OrphanageSeeder().seed(20);
     }
   })
   .catch((x) => {

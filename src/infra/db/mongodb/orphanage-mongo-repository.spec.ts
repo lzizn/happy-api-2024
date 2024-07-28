@@ -1,24 +1,24 @@
 import { ObjectId } from "mongodb";
 
-import {
-  seedOrphanages,
-  cleanOrphanagesSeed,
-  OrphanageMongoRepository,
-} from "@/infra/db";
 import { mockOrphanageModel } from "@/domain/mocks";
 import type { OrphanageModel } from "@/domain/models";
+
+import { OrphanageSeeder, Seeder, OrphanageMongoRepository } from "@/infra/db";
 
 const makeSut = () => {
   return new OrphanageMongoRepository();
 };
 
 describe("OrphanageMongoRepository", () => {
+  let seeder: Seeder;
+
   beforeEach(async () => {
-    await cleanOrphanagesSeed();
+    seeder = OrphanageSeeder();
+    await seeder.clean();
   });
 
   afterEach(async () => {
-    await cleanOrphanagesSeed();
+    await seeder.clean();
   });
 
   describe("loadAll()", () => {
@@ -29,13 +29,13 @@ describe("OrphanageMongoRepository", () => {
     });
 
     it("Should load all orphanages on success", async () => {
-      const { orphanagesDb } = await seedOrphanages();
+      const { fromDb } = await seeder.seed();
 
       const sut = makeSut();
       const orphanages = await sut.loadAll();
 
-      expect(orphanages.length).toBe(orphanagesDb.length);
-      expect(orphanages).toEqual(orphanagesDb);
+      expect(orphanages.length).toBe(fromDb.length);
+      expect(orphanages).toEqual(fromDb);
     });
   });
 
@@ -59,20 +59,18 @@ describe("OrphanageMongoRepository", () => {
     });
 
     it("Should return matching orphanage", async () => {
-      const result = await seedOrphanages();
+      const { fromDb } = await seeder.seed();
 
       const sut = makeSut();
 
-      const orphanage = await sut.loadById(
-        result.orphanagesSeed[0].id as string
-      );
+      const orphanage = await sut.loadById(fromDb[0].id as string);
 
       expect(orphanage).not.toBe(null);
 
       // Just for type-sake, test would fail before this anyway
       if (orphanage === null) return;
 
-      expect(orphanage).toEqual(result.orphanagesSeed[0]);
+      expect(orphanage).toEqual(fromDb[0]);
     });
   });
 
@@ -92,9 +90,9 @@ describe("OrphanageMongoRepository", () => {
 
   describe("update()", () => {
     it("Should update existing orphanage", async () => {
-      const { orphanagesDb } = await seedOrphanages(1);
+      const { fromDb } = await seeder.seed(1);
 
-      const orphanageTarget = orphanagesDb[0];
+      const orphanageTarget = fromDb[0];
 
       const sut = makeSut();
 

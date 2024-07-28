@@ -11,27 +11,33 @@ import {
   MissingParamError,
 } from "@/presentation/errors";
 
-import { cleanOrphanagesSeed, seedOrphanages } from "@/infra/db";
+import { OrphanageSeeder, Seeder } from "@/infra/db";
 
 describe("Orphanages Routes", () => {
+  let seeder: Seeder;
+
+  beforeAll(() => {
+    seeder = OrphanageSeeder();
+  });
+
   beforeEach(async () => {
-    await cleanOrphanagesSeed();
+    await seeder.clean();
   });
 
   afterEach(async () => {
-    await cleanOrphanagesSeed();
+    await seeder.seed();
   });
 
   describe("GET /orphanages", () => {
     it("Should return 200 and list all orphanages", async () => {
-      await cleanOrphanagesSeed();
+      await seeder.clean();
 
-      const { orphanagesDb } = await seedOrphanages();
+      const { fromDb } = await seeder.seed();
 
       const response = await request(app).get("/api/orphanages");
 
       expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual(orphanagesDb);
+      expect(response.body).toEqual(fromDb);
     });
 
     it("Should return 204 and empty object for body if there are no orphanages in DB", async () => {
@@ -106,9 +112,9 @@ describe("Orphanages Routes", () => {
 
   describe("GET /orphanages/:orphanageId", () => {
     it("Should return 200 and matching orphanage", async () => {
-      const { orphanagesDb } = await seedOrphanages(2);
+      const { fromDb } = await seeder.seed(2);
 
-      const orphanageTarget = orphanagesDb[0];
+      const orphanageTarget = fromDb[0];
 
       const response = await request(app).get(
         `/api/orphanages/${orphanageTarget.id as string}`
@@ -194,9 +200,9 @@ describe("Orphanages Routes", () => {
     });
 
     it("Should return 200 and updated orphanage", async () => {
-      const { orphanagesDb } = await seedOrphanages(1);
+      const { fromDb } = await seeder.seed(1);
 
-      const { id } = orphanagesDb[0];
+      const { id } = fromDb[0];
 
       const newOrphanageData = {
         name: "my_new_name",
@@ -209,7 +215,7 @@ describe("Orphanages Routes", () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toStrictEqual({
-        ...orphanagesDb[0],
+        ...fromDb[0],
         ...newOrphanageData,
       });
     });

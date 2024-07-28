@@ -4,39 +4,42 @@ import { MongoHelper } from "@/infra/db";
 import { OrphanageModel } from "@/domain/models";
 import { mockOrphanageModels } from "@/domain/mocks";
 
-export const cleanOrphanagesSeed = async (orphanages?: OrphanageModel[]) => {
-  const orphanageCollection =
-    MongoHelper.getCollection<OrphanageModel>("orphanage");
-
-  if (!orphanages) {
-    await orphanageCollection.deleteMany({});
-    return;
-  }
-
-  await orphanageCollection.deleteMany({
-    _id: { $in: orphanages.map((x) => new ObjectId(x.id)) },
-  });
+type SeedFunctionResult = {
+  fromDb: OrphanageModel[];
+  seeds: OrphanageModel[];
 };
 
-export const seedOrphanages = async (amount: number = 2) => {
+export type Seeder = {
+  seed: (amount?: number) => Promise<SeedFunctionResult>;
+  clean: (orphanages?: OrphanageModel[]) => Promise<void>;
+};
+
+const OrphanageSeeder = (collection_name: string = "orphanage"): Seeder => {
   const orphanageCollection =
-    MongoHelper.getCollection<OrphanageModel>("orphanage");
-
-  const orphanagesSeed = mockOrphanageModels(amount);
-
-  const orphanagesWithIds = orphanagesSeed.map((x) => {
-    const { id, ...rest } = x;
-    return { _id: new ObjectId(id), ...rest };
-  });
-
-  await orphanageCollection.insertMany(orphanagesWithIds);
-
-  const orphanagesDb = await orphanageCollection
-    .find({ _id: { $in: orphanagesWithIds.map((x) => x._id) } })
-    .toArray();
+    MongoHelper.getCollection<OrphanageModel>(collection_name);
 
   return {
-    orphanagesDb: MongoHelper.mapCollection<OrphanageModel>(orphanagesDb),
-    orphanagesSeed,
+    clean: async (orphanages?: OrphanageModel[]) => {
+      if (!orphanages) {
+        await orphanageCollection.deleteMany({});
+        return;
+      }
+
+      await orphanageCollection.deleteMany({
+        _id: { $in: orphanages.map((x) => new ObjectId(x.id)) },
+      });
+    },
+
+    seed: async (amount: number = 2) => {
+      const seeds = mockOrphanageModels(amount);
+
+      await orphanageCollection.insertMany(seeds);
+
+      const fromDb = MongoHelper.mapCollection<OrphanageModel>(seeds);
+
+      return { seeds, fromDb };
+    },
   };
 };
+
+export { OrphanageSeeder };
