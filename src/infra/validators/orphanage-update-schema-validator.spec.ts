@@ -9,7 +9,7 @@ const makeSut = () => {
 };
 
 describe("OrphanageUpdateSchemaValidator", () => {
-  it.only("Should return void(undefined) when orphanage is valid", () => {
+  it("Should return void(undefined) when orphanage is valid", () => {
     const sut = makeSut();
     const orphanage: Partial<OrphanageModel> = mockOrphanageModel();
 
