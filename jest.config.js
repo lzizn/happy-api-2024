@@ -9,6 +9,7 @@ module.exports = {
     "<rootDir>/src/**/*.ts",
     "!<rootDir>/src/**/index.ts",
     "!<rootDir>/src/**/*.d.ts",
+    "!<rootDir>/src/main/middlewares/multer.ts", // there is no way to test this whole file
   ],
   coveragePathIgnorePatterns: ["<rootDir>/src/main/server.ts"],
   coverageDirectory: "coverage",
