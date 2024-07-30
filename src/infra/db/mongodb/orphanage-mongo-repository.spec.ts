@@ -12,8 +12,11 @@ const makeSut = () => {
 describe("OrphanageMongoRepository", () => {
   let seeder: Seeder;
 
-  beforeEach(async () => {
+  beforeAll(() => {
     seeder = OrphanageSeeder();
+  });
+
+  beforeEach(async () => {
     await seeder.clean();
   });
 
