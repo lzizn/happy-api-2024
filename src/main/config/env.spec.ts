@@ -7,9 +7,11 @@ describe("getEnv", () => {
     expect(typeof envs).toBe("object");
     expect(Object.keys(envs)).toEqual([
       "database_url",
+      "awsAccessKey",
       "bucketName",
       "defaultRegion",
       "defaultFilesACL",
+      "awsSecretAccessKey",
     ]);
   });
 });
