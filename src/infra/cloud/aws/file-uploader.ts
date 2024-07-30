@@ -9,7 +9,13 @@ import { getEnv } from "@/main/config/env";
 import type { File } from "@/domain/models";
 import type { FileUploader } from "@/data/protocols/file";
 
-const { bucketName, defaultFilesACL, defaultRegion } = getEnv();
+const {
+  bucketName,
+  defaultRegion,
+  awsAccessKey,
+  defaultFilesACL,
+  awsSecretAccessKey,
+} = getEnv();
 
 const s3Config = {
   bucketName,
@@ -24,11 +30,15 @@ export class AWSFileUploader implements FileUploader {
   constructor() {
     this.client = new S3Client({
       region: s3Config.defaultRegion,
+      credentials: {
+        accessKeyId: awsAccessKey,
+        secretAccessKey: awsSecretAccessKey,
+      },
     });
   }
 
   private generateFileKey(file: File, timestamp: number): string {
-    return `${file.name}-${timestamp}.${file.extension}`;
+    return `${file.name}-${timestamp}${file.extension}`;
   }
 
   private async uploadFile(file: File): Promise<string> {

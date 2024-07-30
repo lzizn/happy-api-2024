@@ -26,7 +26,7 @@ const mockFile = (): File => ({
   name: faker.lorem.word(15),
   content: Buffer.from("123"),
   type: "image/jpeg",
-  extension: "jpeg",
+  extension: ".jpeg",
 });
 
 const makeSut = () => {
@@ -70,7 +70,7 @@ describe("AWSFileUploader", () => {
       expect(key).toContain(file.name);
       expect(key).toContain(file.extension);
       expect(key).toContain(timestamp + "");
-      expect(key).toEqual(`${file.name}-${timestamp}.${file.extension}`);
+      expect(key).toEqual(`${file.name}-${timestamp}${file.extension}`);
     });
   });
 
@@ -95,7 +95,7 @@ describe("AWSFileUploader", () => {
       const file = mockFile();
       const timestamp = Date.now();
 
-      const expectedKey = `${file.name}-${timestamp}.${file.extension}`;
+      const expectedKey = `${file.name}-${timestamp}${file.extension}`;
 
       await (sut as any).uploadFile(file);
 
@@ -127,7 +127,7 @@ describe("AWSFileUploader", () => {
       const timestamp = (path as string).split("-")[1].replace(".jpeg", "");
 
       expect(path).toBe(
-        `${s3ConfigMocked.bucketName}/${file.name}-${timestamp}.${file.extension}`
+        `${s3ConfigMocked.bucketName}/${file.name}-${timestamp}${file.extension}`
       );
 
       s3Mock.reset();
