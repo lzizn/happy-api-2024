@@ -79,7 +79,6 @@ describe("OrphanageLoadByIdController", () => {
     orphanageLoadByIdSpy.error = validationError;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       await sut.handle({ orphanageId: null });
     } catch (e) {

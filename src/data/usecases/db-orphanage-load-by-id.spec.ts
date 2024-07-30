@@ -73,7 +73,6 @@ describe("DbOrphanageLoadById", () => {
 
     for (const id of invalidIds) {
       try {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         sut.loadById(id);
       } catch (e) {

@@ -128,7 +128,6 @@ describe("OrphanageUpdateController", () => {
     requestValidationSpy.error = new MissingParamError("orphanageId");
 
     const httpResponse = await sut.handle({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       orphanageId: undefined,
       name: faker.lorem.word({ length: 5 }),
