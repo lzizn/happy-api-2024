@@ -1,7 +1,8 @@
 import type { File } from "@/domain/models";
 import type { FileUpload } from "@/domain/usecases";
 
-import { created } from "@/presentation/helpers";
+import { InvalidParamError } from "@/presentation/errors";
+import { badRequest, created } from "@/presentation/helpers";
 import type { Controller, HttpResponse } from "@/presentation/protocols";
 
 export class FileUploadController implements Controller {
@@ -9,6 +10,11 @@ export class FileUploadController implements Controller {
 
   async handle(request: FileUploadController.Request): Promise<HttpResponse> {
     const { files } = request;
+
+    if (!Array.isArray(files)) {
+      return badRequest(new InvalidParamError("files"));
+    }
+
     const filesPaths = await this.fileUpload.upload(files);
 
     return created(filesPaths);

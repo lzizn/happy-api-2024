@@ -3,7 +3,8 @@ import { faker } from "@faker-js/faker";
 import type { File } from "@/domain/models";
 import type { FileUpload } from "@/domain/usecases";
 
-import { created } from "@/presentation/helpers";
+import { InvalidParamError } from "@/presentation/errors";
+import { badRequest, created } from "@/presentation/helpers";
 import { FileUploadController } from "@/presentation/controllers";
 
 const mockFile = (): File => ({
@@ -72,6 +73,19 @@ describe("FileUploadController", () => {
   });
 
   // ---- General
+  it("Should return 400 and invalid param when files is not array", async () => {
+    const { sut } = makeSut();
+
+    const cases = [null, false, 0, -0, {}, "123"];
+
+    for (const value of cases) {
+      // @ts-expect-error
+      const response = await sut.handle({ files: value });
+
+      expect(response).toEqual(badRequest(new InvalidParamError("files")));
+    }
+  });
+
   it("Should return 201 and created image paths when valid data is provided", async () => {
     const { sut } = makeSut();
 
