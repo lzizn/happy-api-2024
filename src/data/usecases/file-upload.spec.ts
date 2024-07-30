@@ -8,7 +8,7 @@ import type { File, FileUploaded } from "@/domain/models";
 const mockFile = (): File => ({
   size: 1,
   name: faker.lorem.words(4),
-  content: new ArrayBuffer(1),
+  content: Buffer.from("123"),
   type: faker.image.dataUri(),
   extension: "image/jpeg",
 });

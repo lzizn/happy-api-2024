@@ -3,5 +3,5 @@ export interface File {
   size: number;
   type: string;
   extension: string;
-  content: ArrayBuffer;
+  content: Buffer;
 }
