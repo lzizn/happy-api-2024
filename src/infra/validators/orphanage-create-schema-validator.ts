@@ -24,6 +24,13 @@ export class OrphanageCreateSchemaValidator
       .max(180, { message: "Must be greater than -180 and less than 180" }),
     open_on_weekends: z.boolean(),
     opening_hours: z.string(),
+    images: z
+      .array(
+        z.object({
+          path: z.string(),
+        })
+      )
+      .optional(),
   });
 
   validate(
