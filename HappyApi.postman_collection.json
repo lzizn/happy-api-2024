@@ -1,0 +1,188 @@
+{
+	"info": {
+		"name": "HappyApi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Orphanages - Get all",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/api/orphanages",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"orphanages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Orphanages - Find one",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/api/orphanages/:orphanageId",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"orphanages",
+						":orphanageId"
+					],
+					"variable": [
+						{
+							"key": "orphanageId",
+							"value": "66aab94c4fc33c3c39d51110"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Orphanages - Update",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"new-name\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost/api/orphanages/:orphanageId",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"orphanages",
+						":orphanageId"
+					],
+					"variable": [
+						{
+							"key": "orphanageId",
+							"value": "66a443273bb9f799b57bc4a3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Orphanages - Create",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "description",
+							"value": "commodi advenio deprimo taedium textilis voluptatem coma spargo aperiam placeat",
+							"type": "text"
+						},
+						{
+							"key": "instructions",
+							"value": "caute coadunatio",
+							"type": "text"
+						},
+						{
+							"key": "open_on_weekends",
+							"value": "false",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "Manually created_2",
+							"type": "text"
+						},
+						{
+							"key": "latitude",
+							"value": "-76.33187944069505",
+							"type": "text"
+						},
+						{
+							"key": "longitude",
+							"value": "154.00321793742478",
+							"type": "text"
+						},
+						{
+							"key": "opening_hours",
+							"value": "Mon-Sun 7am-7pm",
+							"type": "text"
+						},
+						{
+							"key": "files",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/api/orphanages",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"orphanages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Orphanages - Delete Image",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"imageKey\": \"mocked_bucket/photo-kids-3-1722464571128.png\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost/api/orphanages/:orphanageId/images",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"orphanages",
+						":orphanageId",
+						"images"
+					],
+					"variable": [
+						{
+							"key": "orphanageId",
+							"value": "66aab94c4fc33c3c39d51110"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
