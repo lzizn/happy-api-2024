@@ -1,6 +1,7 @@
-import { orphanagesPath, orphanagePath } from "./paths/";
+import { orphanagesPath, orphanagePath, orphanageImagePath } from "./paths/";
 
 export default {
   "/orphanages": orphanagesPath,
   "/orphanages/:orphanageId": orphanagePath,
+  "/orphanages/:orphanageId/images": orphanageImagePath,
 };

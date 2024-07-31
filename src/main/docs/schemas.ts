@@ -5,6 +5,7 @@ import {
   fileUploadedSchema,
   orphanageCreateParamsSchema,
   orphanageUpdateParamsSchema,
+  orphanageImageDeleteParamsSchema,
 } from "./schemas/";
 
 export default {
@@ -14,4 +15,5 @@ export default {
   fileUploaded: fileUploadedSchema,
   orphanageCreateParams: orphanageCreateParamsSchema,
   orphanageUpdateParams: orphanageUpdateParamsSchema,
+  orphanageImageDeleteParams: orphanageImageDeleteParamsSchema,
 };
