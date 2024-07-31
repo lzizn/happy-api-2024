@@ -6,7 +6,7 @@ import {
 
 import { getEnv } from "@/main/config/env";
 
-import type { File } from "@/domain/models";
+import type { File, FileUploaded } from "@/domain/models";
 import type { FileUploader } from "@/data/protocols/file";
 
 const {
@@ -41,7 +41,7 @@ export class AWSFileUploader implements FileUploader {
     return `${file.name}-${timestamp}${file.extension}`;
   }
 
-  private async uploadFile(file: File): Promise<string> {
+  private async uploadFile(file: File): Promise<FileUploaded> {
     const timestamp = Date.now();
 
     const fileKey = this.generateFileKey(file, timestamp);
@@ -56,16 +56,22 @@ export class AWSFileUploader implements FileUploader {
 
     await this.client.send(putObjectCommand);
 
-    return `${this.bucketName}/${fileKey}`;
+    const fileUploaded: FileUploaded = {
+      url: `https://${this.bucketName}.s3.amazonaws.com/${fileKey}`,
+      name: file.name,
+      path: `${this.bucketName}/${fileKey}`,
+    };
+
+    return fileUploaded;
   }
 
   async upload(files: File[]): FileUploader.Result {
     try {
-      const paths = await Promise.all(
+      const uploadedFiles = await Promise.all(
         files.map(async (file) => this.uploadFile(file))
       );
 
-      return paths.map((path) => ({ path }));
+      return uploadedFiles;
     } catch {
       return undefined;
     }
