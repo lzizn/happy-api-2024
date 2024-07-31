@@ -30,6 +30,13 @@ export class OrphanageUpdateSchemaValidator
         .optional(),
       open_on_weekends: z.boolean().optional(),
       opening_hours: z.string().optional(),
+      images: z
+        .array(
+          z.object({
+            path: z.string(),
+          })
+        )
+        .optional(),
     })
     .refine(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
