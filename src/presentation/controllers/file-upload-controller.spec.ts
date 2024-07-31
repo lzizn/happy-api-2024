@@ -1,19 +1,10 @@
-import { faker } from "@faker-js/faker";
-
+import { mockFile } from "@/domain/mocks";
 import type { File } from "@/domain/models";
 import type { FileUpload } from "@/domain/usecases";
 
 import { InvalidParamError } from "@/presentation/errors";
 import { badRequest, created } from "@/presentation/helpers";
 import { FileUploadController } from "@/presentation/controllers";
-
-const mockFile = (): File => ({
-  size: 1,
-  name: faker.lorem.words(4),
-  content: Buffer.from("123"),
-  type: faker.image.dataUri(),
-  extension: "image/jpeg",
-});
 
 const makeFileUploadSpy = () => {
   class FileUploadStub implements FileUpload {

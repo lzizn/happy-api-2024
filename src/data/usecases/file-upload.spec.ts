@@ -3,15 +3,8 @@ import { faker } from "@faker-js/faker";
 import { RemoteFileUpload } from "@/data/usecases";
 import type { FileUploader } from "@/data/protocols/file";
 
+import { mockFile } from "@/domain/mocks";
 import type { File, FileUploaded } from "@/domain/models";
-
-const mockFile = (): File => ({
-  size: 1,
-  name: faker.lorem.word(15),
-  content: Buffer.from("123"),
-  type: "image/jpeg",
-  extension: ".jpeg",
-});
 
 const makeFileUploaderSpy = () => {
   class FileUploaderSpy implements FileUploader {
