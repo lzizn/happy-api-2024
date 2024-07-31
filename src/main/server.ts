@@ -2,8 +2,7 @@ import "module-alias/register";
 import { configDotenv } from "dotenv";
 
 import { getEnv } from "@/main/config/env";
-import { OrphanageModel } from "@/domain/models";
-import { MongoHelper, OrphanageSeeder } from "@/infra/db";
+import { MongoHelper } from "@/infra/db";
 
 configDotenv();
 
@@ -18,15 +17,6 @@ MongoHelper.connect(env.database_url)
     const { app } = await import("./config/app");
 
     app.listen(80, () => console.log(`Server running at http://localhost:80`));
-
-    const orphanageCollection =
-      MongoHelper.getCollection<OrphanageModel>("orphanage");
-
-    const orphanagesAmount = await orphanageCollection.countDocuments();
-
-    if (orphanagesAmount === 0) {
-      await OrphanageSeeder().seed(20);
-    }
   })
   .catch((x) => {
     console.log("Failed to initialize server: ", x.message);
