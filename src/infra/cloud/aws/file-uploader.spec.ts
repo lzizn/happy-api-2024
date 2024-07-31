@@ -122,7 +122,6 @@ describe("AWSFileUploader", () => {
       expect(path).toContain(s3ConfigMocked.bucketName);
       expect(path).toContain(file.name);
       expect(path).toContain(file.extension);
-      console.log(path);
 
       const timestamp = (path as string).split("-")[1].replace(".jpeg", "");
 
