@@ -1,5 +1,8 @@
 import request from "supertest";
 
+import { S3Client } from "@aws-sdk/client-s3";
+import { mockClient } from "aws-sdk-client-mock";
+
 import { app } from "@/main/config/app";
 
 import { mockOrphanageModel } from "@/domain/mocks";
@@ -13,7 +16,16 @@ import {
 
 import { OrphanageSeeder, Seeder } from "@/infra/db";
 
+jest.mock("@/main/config/env", () => ({
+  getEnv: () => ({
+    bucketName: "mocked_bucket",
+    defaultRegion: "mocked_en_US",
+    defaultFilesACL: "mocked_public_read",
+  }),
+}));
+
 describe("Orphanages Routes", () => {
+  mockClient(S3Client);
   let seeder: Seeder;
 
   beforeAll(() => {
@@ -77,7 +89,9 @@ describe("Orphanages Routes", () => {
           name: 123,
           latitude: { a: 1 },
           longitude: 210,
-          open_on_weekends: "1",
+
+          // this is parsed into false
+          open_on_weekends: {},
         });
 
       expect(response.statusCode).toBe(400);
@@ -88,7 +102,6 @@ describe("Orphanages Routes", () => {
           { name: ["Expected string, received number"] },
           { latitude: ["Expected number, received object"] },
           { longitude: ["Must be greater than -180 and less than 180"] },
-          { open_on_weekends: ["Expected boolean, received string"] },
         ],
       });
     });
@@ -100,13 +113,62 @@ describe("Orphanages Routes", () => {
 
       const response = await request(app)
         .post("/api/orphanages")
-        .send(orphanageMock);
+        .send({
+          ...orphanageMock,
+          open_on_weekends: orphanageMock.open_on_weekends ? "true" : "false",
+        });
 
       expect(response.statusCode).toBe(201);
       expect(response.body).toEqual({
         id: response.body.id,
         ...orphanageMock,
       });
+    });
+
+    it("Should return 201 and created orphanage with uploaded images when request is valid", async () => {
+      const orphanageMock = mockOrphanageModel();
+
+      delete orphanageMock.id;
+
+      const files = [
+        {
+          content: Buffer.from("123"),
+          name: "image_abc.jpeg",
+        },
+        {
+          content: Buffer.from("123"),
+          name: "another_image_123.jpeg",
+        },
+      ];
+
+      const response = await request(app)
+        .post("/api/orphanages")
+        .field("description", orphanageMock.description)
+        .field("instructions", orphanageMock.instructions)
+        .field("open_on_weekends", orphanageMock.open_on_weekends)
+        .field("name", orphanageMock.name)
+        .field("latitude", orphanageMock.latitude)
+        .field("longitude", orphanageMock.longitude)
+        .field("opening_hours", orphanageMock.opening_hours)
+        .attach("files", files[0].content, files[0].name)
+        .attach("files", files[1].content, files[1].name);
+
+      expect(response.statusCode).toBe(201);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, images, ...orphanageRest } = response.body;
+
+      expect(orphanageRest).toEqual(orphanageMock);
+
+      expect(images[0]).toHaveProperty("path");
+      const [filename, extension] = files[0].name.split(".");
+      expect(images[0].path).toContain(filename);
+      expect(images[0].path).toContain(extension);
+
+      expect(images[1]).toHaveProperty("path");
+      const [filename1, extension1] = files[1].name.split(".");
+      expect(images[1].path).toContain(filename1);
+      expect(images[1].path).toContain(extension1);
     });
   });
 
