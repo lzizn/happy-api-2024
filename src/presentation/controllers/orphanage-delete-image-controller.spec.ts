@@ -13,6 +13,7 @@ import {
 import type { Validation } from "@/presentation/protocols";
 import { ok, badRequest, notFound, noContent } from "@/presentation/helpers";
 import { OrphanageDeleteImageController } from "@/presentation/controllers";
+import { FileDeleter } from "@/data/protocols/file";
 
 const mockOrphanagesWithImages = (amount = 2): OrphanageModel[] => {
   const orphanages = mockOrphanageModels(amount);
@@ -32,6 +33,22 @@ const mockOrphanagesWithImages = (amount = 2): OrphanageModel[] => {
       ],
     };
   });
+};
+
+const makeFileDeleter = () => {
+  class FileDeleterSpy implements FileDeleter {
+    error?: Error;
+    input?: string;
+
+    async delete(fileKey: string): FileDeleter.Result {
+      this.input = fileKey;
+      if (this.error) return this.error;
+
+      return undefined;
+    }
+  }
+
+  return new FileDeleterSpy();
 };
 
 const makeOrphanageUpdateSpy = () => {
@@ -84,11 +101,13 @@ const makeRequestValidationSpy = () => {
 const makeSut = () => {
   const orphanagesMocked = mockOrphanagesWithImages();
 
+  const fileDeleterSpy = makeFileDeleter();
   const orphanageUpdateSpy = makeOrphanageUpdateSpy();
   const orphanageLoadByIdSpy = makeOrphanageLoadByIdSpy(orphanagesMocked);
   const requestValidationSpy = makeRequestValidationSpy();
 
   const sut = new OrphanageDeleteImageController(
+    fileDeleterSpy,
     orphanageUpdateSpy,
     orphanageLoadByIdSpy,
     requestValidationSpy
@@ -96,6 +115,7 @@ const makeSut = () => {
 
   return {
     sut,
+    fileDeleterSpy,
     orphanagesMocked,
     orphanageUpdateSpy,
     orphanageLoadByIdSpy,
@@ -229,6 +249,37 @@ describe("OrphanageUpdateController", () => {
     }
   });
 
+  // ---- FileDeleter
+  it("Should call FileDeleter with correct values", async () => {
+    const { sut, fileDeleterSpy, orphanagesMocked } = makeSut();
+
+    const request = {
+      orphanageId: orphanagesMocked[0].id as string,
+      imageKey: orphanagesMocked[0].images![0].path,
+    };
+
+    await sut.handle(request);
+
+    expect(fileDeleterSpy.input).toEqual(request.imageKey);
+  });
+  it("Should throw when FileDeleter returns error", async () => {
+    const { sut, fileDeleterSpy, orphanagesMocked } = makeSut();
+
+    const error = new Error("Caused by test");
+    fileDeleterSpy.error = error;
+
+    const request = {
+      orphanageId: orphanagesMocked[0].id as string,
+      imageKey: orphanagesMocked[0].images![0].path,
+    };
+
+    try {
+      await sut.handle(request);
+    } catch (e) {
+      expect(e).toEqual(error);
+    }
+  });
+
   // ---- General
   it("Should return 400 not found when orphanageId does not match any orphanage in DB", async () => {
     const { sut, orphanagesMocked } = makeSut();
@@ -261,11 +312,22 @@ describe("OrphanageUpdateController", () => {
     const httpResponse = await sut.handle(request);
     expect(httpResponse).toEqual(noContent());
   });
+  it("Should return 204 when orphanage has images but provided key does not match any of them", async () => {
+    const { sut, orphanagesMocked } = makeSut();
+
+    const request = {
+      orphanageId: orphanagesMocked[0].id as string,
+      imageKey: "123",
+    };
+
+    const httpResponse = await sut.handle(request);
+    expect(httpResponse).toEqual(noContent());
+  });
   it("Should return 200 and updated orphanage when valid data is provided", async () => {
     const { sut, orphanagesMocked } = makeSut();
 
     const orphanageTarget = orphanagesMocked[0];
-    const imageKey = orphanageTarget.images![0].name;
+    const imageKey = orphanageTarget.images![0].path;
 
     const request = {
       orphanageId: orphanageTarget.id as string,

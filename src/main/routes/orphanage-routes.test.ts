@@ -25,7 +25,8 @@ jest.mock("@/main/config/env", () => ({
 }));
 
 describe("Orphanages Routes", () => {
-  mockClient(S3Client);
+  const s3Mock = mockClient(S3Client);
+
   let seeder: Seeder;
 
   beforeAll(() => {
@@ -169,6 +170,8 @@ describe("Orphanages Routes", () => {
       const [filename1, extension1] = files[1].name.split(".");
       expect(images[1].path).toContain(filename1);
       expect(images[1].path).toContain(extension1);
+
+      s3Mock.resetHistory();
     });
   });
 
@@ -317,7 +320,37 @@ describe("Orphanages Routes", () => {
       expect(response.body).toEqual({});
     });
 
-    it("Should delete image from existing images of given orphanage", async () => {
+    it("Should return 204 if orphanage has images but provided key does not match any of them", async () => {
+      await seeder.clean();
+
+      const { fromDb } = await seeder.seed(1);
+
+      const targetOrphanage = fromDb[0];
+
+      const images = [
+        {
+          name: "mocked_1.jpeg",
+          url: "http://mocked_bucket.s3.amazonaws.com/mocked_1.jpeg",
+          path: "mocked_bucket/mocked_1.jpeg",
+        },
+      ];
+
+      await new OrphanageMongoRepository().update({
+        id: targetOrphanage.id,
+        images,
+      });
+
+      const response = await request(app)
+        .delete(`/api/orphanages/${fromDb[0].id}/images`)
+        .send({
+          imageKey: "123",
+        });
+
+      expect(response.statusCode).toBe(204);
+      expect(response.body).toEqual({});
+    });
+
+    it("Should delete image from given orphanage", async () => {
       await seeder.clean();
 
       const { fromDb } = await seeder.seed(1);
@@ -347,11 +380,10 @@ describe("Orphanages Routes", () => {
         images: initalImages,
       });
 
+      const imageKey = initalImages[0].path;
       const response = await request(app)
         .delete(`/api/orphanages/${targetOrphanage.id}/images`)
-        .send({
-          imageKey: initalImages[0].path,
-        });
+        .send({ imageKey });
 
       expect(response.statusCode).toBe(200);
 
@@ -359,6 +391,13 @@ describe("Orphanages Routes", () => {
       expect(orphanageRest).toEqual(targetOrphanage);
       expect(images.length).not.toBe(initalImages.length);
       expect(images).toEqual([initalImages[1], initalImages[2]]);
+
+      expect(s3Mock.calls()[0].args[0].input).toEqual({
+        Bucket: "mocked_bucket",
+        Key: imageKey,
+      });
+
+      s3Mock.resetHistory();
     });
   });
 });

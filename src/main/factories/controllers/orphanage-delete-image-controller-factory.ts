@@ -4,6 +4,7 @@ import {
 } from "@/main/factories";
 
 import {
+  makeFileDelete,
   makeDbOrphanageUpdate,
   makeDbOrphanageLoadById,
 } from "@/main/factories/usecases";
@@ -14,7 +15,10 @@ import { OrphanageDeleteImageController } from "@/presentation/controllers";
 export const makeOrphanageDeleteImageController = (): Controller => {
   const validation = makeOrphanageDeleteImageValidation();
 
+  const fileDeleter = makeFileDelete();
+
   const controller = new OrphanageDeleteImageController(
+    fileDeleter,
     makeDbOrphanageUpdate(),
     makeDbOrphanageLoadById(),
     validation

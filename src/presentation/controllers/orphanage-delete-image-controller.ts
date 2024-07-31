@@ -1,4 +1,8 @@
-import type { OrphanageLoadById, OrphanageUpdate } from "@/domain/usecases";
+import type {
+  FileDelete,
+  OrphanageUpdate,
+  OrphanageLoadById,
+} from "@/domain/usecases";
 
 import type {
   Controller,
@@ -10,6 +14,7 @@ import { ok, notFound, badRequest, noContent } from "@/presentation/helpers";
 
 export class OrphanageDeleteImageController implements Controller {
   constructor(
+    private readonly fileDeleter: FileDelete,
     private readonly orphanageUpdate: OrphanageUpdate,
     private readonly orphanagesLoadById: OrphanageLoadById,
     private readonly validation: Validation
@@ -33,6 +38,20 @@ export class OrphanageDeleteImageController implements Controller {
 
     if (!existingOrphanage.images || !existingOrphanage.images.length) {
       return noContent();
+    }
+
+    const fileExists = existingOrphanage.images.some(
+      ({ path }) => path === imageKey
+    );
+
+    if (!fileExists) {
+      return noContent();
+    }
+
+    const deleteError = await this.fileDeleter.delete(imageKey);
+
+    if (deleteError) {
+      throw deleteError;
     }
 
     const newImages = existingOrphanage.images.filter(
