@@ -1,11 +1,10 @@
-import { faker } from "@faker-js/faker";
-
 import { S3Client } from "@aws-sdk/client-s3";
 import { mockClient } from "aws-sdk-client-mock";
 
 import type { File } from "@/domain/models";
 
 import { AWSFileUploader } from "@/infra/cloud";
+import { mockFile } from "@/domain/mocks";
 
 const s3ConfigMocked = {
   bucketName: "mocked_bucket",
@@ -20,14 +19,6 @@ jest.mock("@/main/config/env", () => ({
     defaultFilesACL: "mocked_public_read",
   }),
 }));
-
-const mockFile = (): File => ({
-  size: 1,
-  name: faker.lorem.word(15),
-  content: Buffer.from("123"),
-  type: "image/jpeg",
-  extension: ".jpeg",
-});
 
 const makeSut = () => {
   const sut = new AWSFileUploader();
@@ -117,11 +108,17 @@ describe("AWSFileUploader", () => {
 
       const file = mockFile();
 
-      const path = await (sut as any).uploadFile(file);
+      const { path, url, name } = await (sut as any).uploadFile(file);
+
+      expect(name).toBe(file.name);
 
       expect(path).toContain(s3ConfigMocked.bucketName);
       expect(path).toContain(file.name);
       expect(path).toContain(file.extension);
+
+      expect(url).toContain(s3ConfigMocked.bucketName);
+      expect(url).toContain(file.name);
+      expect(url).toContain(file.extension);
 
       const timestamp = (path as string).split("-")[1].replace(".jpeg", "");
 
@@ -172,27 +169,50 @@ describe("AWSFileUploader", () => {
       expect(uploadFileStub).toHaveBeenCalledTimes(files.length);
     });
 
-    it("Should return all paths of uploaded files", async () => {
+    it("Should return name, path and url of uploaded files", async () => {
       const { sut } = makeSut();
 
       const mockedPaths: string[] = [];
 
-      const uploadFileStub = jest.fn().mockImplementation((file: File) => {
-        const key = `${s3ConfigMocked.bucketName}/${file.name}.${file.type}`;
-        mockedPaths.push(key);
+      const uploadFileStub = jest
+        .fn()
+        .mockImplementation(({ name, extension }: File) => {
+          const key = `${s3ConfigMocked.bucketName}/${name}${extension}`;
+          mockedPaths.push(key);
 
-        return key;
-      });
+          return {
+            name: name,
+            path: key,
+            url:
+              "https://" + s3ConfigMocked.bucketName + "/" + name + extension,
+          };
+        });
 
       (sut as any).uploadFile = uploadFileStub;
 
       const files = [mockFile(), mockFile()];
 
-      const result = await sut.upload(files);
+      const results = await sut.upload(files);
       s3Mock.reset();
 
       expect(uploadFileStub).toHaveBeenCalledTimes(files.length);
-      expect(result).toEqual(mockedPaths.map((path) => ({ path })));
+      expect(Array.isArray(results)).toBe(true);
+
+      // just for ts sake, test would have failed before this
+      if (!results) return;
+      expect(results.length).toBe(2);
+
+      expect(results[0].name).toEqual(files[0].name);
+      expect(results[0].path).toContain(files[0].name);
+      expect(results[0].path).toContain(files[0].extension);
+      expect(results[0].url).toContain(files[0].name);
+      expect(results[0].url).toContain(files[0].extension);
+
+      expect(results[1].name).toEqual(files[1].name);
+      expect(results[1].path).toContain(files[1].name);
+      expect(results[1].path).toContain(files[1].extension);
+      expect(results[1].url).toContain(files[1].name);
+      expect(results[1].url).toContain(files[1].extension);
     });
   });
 });

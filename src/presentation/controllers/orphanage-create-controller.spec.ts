@@ -22,6 +22,8 @@ const makeFileUploadSpy = () => {
       if (this.error) throw this.error;
 
       return files.map(({ name, extension }) => ({
+        name,
+        url: `https://mocked_bucket.s3.amazonaws.com/${name}${extension}`,
         path: `mocked_bucket/${name}${extension}`,
       }));
     }
@@ -308,8 +310,16 @@ describe("OrphanageCreateController", () => {
       ...orphanage,
       id: response.body.id,
       images: [
-        { path: "mocked_bucket/" + files[0].name + files[0].extension },
-        { path: "mocked_bucket/" + files[1].name + files[1].extension },
+        {
+          name: files[0].name,
+          path: "mocked_bucket/" + files[0].name + files[0].extension,
+          url: `https://mocked_bucket.s3.amazonaws.com/${files[0].name}${files[0].extension}`,
+        },
+        {
+          name: files[1].name,
+          path: "mocked_bucket/" + files[1].name + files[1].extension,
+          url: `https://mocked_bucket.s3.amazonaws.com/${files[1].name}${files[1].extension}`,
+        },
       ],
     };
 

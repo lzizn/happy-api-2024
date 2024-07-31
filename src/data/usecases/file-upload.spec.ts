@@ -11,6 +11,8 @@ const makeFileUploaderSpy = () => {
     input?: File | File[];
     result?: FileUploaded[] = new Array(1).fill(null).map(() => ({
       path: faker.image.url(),
+      url: faker.image.url(),
+      name: faker.lorem.word(10),
     }));
 
     async upload(files: File[]): FileUploader.Result {

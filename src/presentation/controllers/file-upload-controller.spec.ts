@@ -1,5 +1,5 @@
 import { mockFile } from "@/domain/mocks";
-import type { File } from "@/domain/models";
+import type { File, FileUploaded } from "@/domain/models";
 import type { FileUpload } from "@/domain/usecases";
 
 import { InvalidParamError } from "@/presentation/errors";
@@ -9,6 +9,7 @@ import { FileUploadController } from "@/presentation/controllers";
 const makeFileUploadSpy = () => {
   class FileUploadStub implements FileUpload {
     input?: File[];
+    result?: FileUploaded[];
     error?: Error;
 
     async upload(files: File[]): FileUpload.Result {
@@ -16,7 +17,14 @@ const makeFileUploadSpy = () => {
 
       if (this.error) throw this.error;
 
-      return files.map(() => ({ path: "/mocked-path" }));
+      const result = files.map(({ name, content }) => ({
+        name,
+        url: "https://" + "mocked_bucket/" + name + content,
+        path: "mocked_bucket/" + name + content,
+      }));
+      this.result = result;
+
+      return result;
     }
   }
 
@@ -78,14 +86,13 @@ describe("FileUploadController", () => {
   });
 
   it("Should return 201 and created image paths when valid data is provided", async () => {
-    const { sut } = makeSut();
+    const { sut, fileUploadSpy } = makeSut();
 
+    const files = [mockFile(), mockFile()];
     const response = await sut.handle({
-      files: [mockFile(), mockFile()],
+      files,
     });
 
-    expect(response).toEqual(
-      created([{ path: "/mocked-path" }, { path: "/mocked-path" }])
-    );
+    expect(response).toEqual(created(fileUploadSpy.result));
   });
 });
