@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 
 const config = {
   field: "files",
-  limitFileAmount: 2,
+  limitFileAmount: 6,
   maxFile: {
     amount: 3 * 1024 * 1024,
     label: "3MB",
