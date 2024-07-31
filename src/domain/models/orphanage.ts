@@ -9,5 +9,5 @@ export interface OrphanageModel {
   instructions: string;
   opening_hours: string;
   open_on_weekends: boolean;
-  images?: FileUploaded;
+  images?: FileUploaded[];
 }
