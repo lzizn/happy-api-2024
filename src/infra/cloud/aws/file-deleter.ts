@@ -44,11 +44,7 @@ export class AWSFileDeleter implements FileDeleter {
 
       await this.client.send(deleteObjectCommand);
     } catch (e) {
-      if (e instanceof Error) {
-        return e;
-      }
-
-      return new Error("Unknown error");
+      return e as unknown as Error;
     }
   }
 }
