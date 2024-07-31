@@ -5,6 +5,7 @@ import {
   makeOrphanageUpdateController,
   makeOrphanageCreateController,
   makeOrphanageLoadByIdController,
+  makeOrphanageDeleteImageController,
 } from "@/main/factories";
 import { adaptRoute } from "@/main/adapters";
 import { fileHandler, multerMiddleware } from "@/main/middlewares";
@@ -26,5 +27,10 @@ export default (router: Router) => {
   router.get(
     "/orphanages/:orphanageId",
     adaptRoute(makeOrphanageLoadByIdController())
+  );
+
+  router.delete(
+    "/orphanages/:orphanageId/images",
+    adaptRoute(makeOrphanageDeleteImageController())
   );
 };

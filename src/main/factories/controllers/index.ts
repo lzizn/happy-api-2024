@@ -4,3 +4,5 @@ export * from "./orphanage-create-validation-factory";
 export * from "./orphanage-create-controller-factory";
 export * from "./orphanage-update-validation-factory";
 export * from "./orphanage-update-controller-factory";
+export * from "./orphanage-delete-image-controller-factory";
+export * from "./orphanage-delete-image-validation-factory";

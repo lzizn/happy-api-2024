@@ -14,7 +14,7 @@ import {
   MissingParamError,
 } from "@/presentation/errors";
 
-import { OrphanageSeeder, Seeder } from "@/infra/db";
+import { OrphanageSeeder, Seeder, OrphanageMongoRepository } from "@/infra/db";
 
 jest.mock("@/main/config/env", () => ({
   getEnv: () => ({
@@ -280,6 +280,85 @@ describe("Orphanages Routes", () => {
         ...fromDb[0],
         ...newOrphanageData,
       });
+    });
+  });
+
+  describe("DELETE /orphanages/:orphanageId/images/:imageKey", () => {
+    it("Should return 404 if orphanageId does not match any orphanage", async () => {
+      await seeder.clean();
+
+      const randomId = "00a0a00d00cb0a00000fb000";
+
+      const response = await request(app)
+        .delete(`/api/orphanages/${randomId}/images`)
+        .send({
+          imageKey: "123",
+        });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: NotFoundError.name,
+        message: new NotFoundError("orphanageId").message,
+      });
+    });
+
+    it("Should return 204 if orphanage does not have any image to be deleted", async () => {
+      await seeder.clean();
+
+      const { fromDb } = await seeder.seed(1);
+
+      const response = await request(app)
+        .delete(`/api/orphanages/${fromDb[0].id}/images`)
+        .send({
+          imageKey: "123",
+        });
+
+      expect(response.statusCode).toBe(204);
+      expect(response.body).toEqual({});
+    });
+
+    it("Should delete image from existing images of given orphanage", async () => {
+      await seeder.clean();
+
+      const { fromDb } = await seeder.seed(1);
+
+      const targetOrphanage = fromDb[0];
+
+      const initalImages = [
+        {
+          name: "mocked_1.jpeg",
+          url: "http://mocked_bucket.s3.amazonaws.com/mocked_1.jpeg",
+          path: "mocked_bucket/mocked_1.jpeg",
+        },
+        {
+          name: "mocked_2.jpeg",
+          url: "http://mocked_bucket.s3.amazonaws.com/mocked_2.jpeg",
+          path: "mocked_bucket/mocked_2.jpeg",
+        },
+        {
+          name: "mocked_3.jpeg",
+          url: "http://mocked_bucket.s3.amazonaws.com/mocked_3.jpeg",
+          path: "mocked_bucket/mocked_3.jpeg",
+        },
+      ];
+
+      await new OrphanageMongoRepository().update({
+        id: targetOrphanage.id,
+        images: initalImages,
+      });
+
+      const response = await request(app)
+        .delete(`/api/orphanages/${targetOrphanage.id}/images`)
+        .send({
+          imageKey: initalImages[0].path,
+        });
+
+      expect(response.statusCode).toBe(200);
+
+      const { images, ...orphanageRest } = response.body;
+      expect(orphanageRest).toEqual(targetOrphanage);
+      expect(images.length).not.toBe(initalImages.length);
+      expect(images).toEqual([initalImages[1], initalImages[2]]);
     });
   });
 });
