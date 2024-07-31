@@ -33,7 +33,8 @@ export const orphanageImagePath = {
         },
       },
       204: {
-        description: "No images to delete",
+        description:
+          "No images to delete or provided key does not match existing images",
       },
       400: {
         $ref: "#/components/badRequest",
