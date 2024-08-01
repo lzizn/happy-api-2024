@@ -20,7 +20,7 @@
 
 ## 🧸 About
 
-Happy is an application that connects people to institutional care homes to make many children's day happier, which was originally developed in 2021.
+Happy is an application that connects people to institutional care homes to make many children's day happier. It was originally developed in 2021.
 
 This repository is a Clean Architecture 2024 version of [happy-api](https://github.com/lzizn/happy-api).
 
