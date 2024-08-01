@@ -7,9 +7,12 @@
 </h3>
 
 <p align="center">
-  <a href="https://www.linkedin.com/in/laianbraum/"><img alt="Made by" src="https://img.shields.io/badge/made%20by-Laian%20Braum-%2315C3D6"></a>
+  <a href="https://codecov.io/gh/lzizn/happy-api-2024" >
+  <img src="https://codecov.io/gh/lzizn/happy-api-2024/branch/master/graph/badge.svg?token=7HB7NSKRE5"/>
+  </a>
   <img alt="Repository size" src="https://img.shields.io/github/repo-size/lzizn/happy-api-2024?color=15C3D6">
-  <a href="https://github.com/lzizn/happy-api-2024/commits/master"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/lzizn/happy-api-2024?color=15C3D6"></a>
+</a>
+
 </p>
 
 <p align="center">
