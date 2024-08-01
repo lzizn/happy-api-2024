@@ -61,3 +61,9 @@ $ pnpm run dev
 
 # Well done, project is started!
 ```
+
+### API documentation
+
+Upon running the server, an api documentation is available at http://localhost/api-docs
+
+<img alt="Happy" title="Happy" src=".github/swagger.png" />
